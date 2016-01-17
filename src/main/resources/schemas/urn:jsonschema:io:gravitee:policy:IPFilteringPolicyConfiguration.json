@@ -1,0 +1,26 @@
+{
+  "type" : "object",
+  "id" : "urn:jsonschema:io:gravitee:policy:IPFilteringPolicyConfiguration",
+  "properties" : {
+    "matchAllFromXForwardedFor" : {
+      "title" : "Use X-Forwarded-For header",
+      "type" : "boolean"
+    },
+    "whitelistIps" : {
+      "title" : "IPs Whitelist (CIDR allowed)",
+      "type" : "array",
+      "items" : {
+        "title" : "IP or CIDR",
+        "type" : "string"
+      }
+    },
+    "blacklistIps" : {
+      "title" : "IPs Blacklist (CIDR allowed)",
+      "type" : "array",
+      "items" : {
+        "title" : "IP or CIDR",
+        "type" : "string"
+      }
+    }
+  }
+}
