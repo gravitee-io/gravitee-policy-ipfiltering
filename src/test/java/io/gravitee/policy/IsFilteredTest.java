@@ -15,6 +15,8 @@
  */
 package io.gravitee.policy;
 
+import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
+import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -28,15 +30,6 @@ public class IsFilteredTest {
         IPFilteringPolicy policy = new IPFilteringPolicy(new IPFilteringPolicyConfiguration());
 
         boolean filtered = policy.isFiltered("1.1.1.1", Collections.emptyList());
-
-        assertFalse(filtered);
-    }
-
-    @Test
-    public void shouldNotFilteredIfNullList() {
-        IPFilteringPolicy policy = new IPFilteringPolicy(new IPFilteringPolicyConfiguration());
-
-        boolean filtered = policy.isFiltered("1.1.1.1", null);
 
         assertFalse(filtered);
     }

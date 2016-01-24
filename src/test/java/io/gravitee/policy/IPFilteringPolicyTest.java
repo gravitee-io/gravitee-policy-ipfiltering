@@ -20,11 +20,12 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
+import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
+import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.matchers.GreaterThan;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
