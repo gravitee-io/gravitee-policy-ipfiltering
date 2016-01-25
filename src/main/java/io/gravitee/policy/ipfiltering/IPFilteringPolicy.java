@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.policy;
+package io.gravitee.policy.ipfiltering;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
@@ -47,17 +47,7 @@ public class IPFilteringPolicy {
     @OnRequest
     public void onRequest(Request request, Response response, PolicyChain policyChain) {
 
-        List<String> ips;
-
-        if (configuration.isMatchAllFromXForwardedFor()
-                && request.headers() != null
-                && request.headers().get(HttpHeaders.X_FORWARDED_FOR) != null
-                && !request.headers().get(HttpHeaders.X_FORWARDED_FOR).isEmpty()) {
-            ips = Arrays.asList(request.headers().get(HttpHeaders.X_FORWARDED_FOR).get(0).split(","))
-                    .stream().map(String::trim).collect(Collectors.toList());
-        } else {
-            ips = Collections.singletonList(request.remoteAddress());
-        }
+        List<String> ips = extractIps(request);
 
         final boolean isBlacklisted =
                 !(configuration.getBlacklistIps() == null || configuration.getBlacklistIps().isEmpty())
@@ -97,14 +87,25 @@ public class IPFilteringPolicy {
             });
     }
 
+    public List<String> extractIps(Request request) {
+        List<String> ips;
+
+        if (configuration.isMatchAllFromXForwardedFor()
+                && request.headers() != null
+                && request.headers().get(HttpHeaders.X_FORWARDED_FOR) != null
+                && !request.headers().get(HttpHeaders.X_FORWARDED_FOR).isEmpty()) {
+            ips = Arrays.asList(request.headers().get(HttpHeaders.X_FORWARDED_FOR).get(0).split(","))
+                    .stream().map(String::trim).collect(Collectors.toList());
+        } else {
+            ips = Collections.singletonList(request.remoteAddress());
+        }
+        return ips;
+    }
+
     public boolean isFiltered(String ip, List<String> filteredList) {
-        return
-                !(filteredList == null
-                        || filteredList.isEmpty()
-                        || ip == null
-                        || ip.isEmpty()
-                ) && filteredList.stream().anyMatch(filterIp -> {
-                    if (ip.equals(filterIp)) {
+        return !(null == ip || ip.isEmpty())
+                && filteredList.stream().anyMatch(filterIp -> {
+                    if (filterIp.equals(ip)) {
                         return true;
                     }
                     try {

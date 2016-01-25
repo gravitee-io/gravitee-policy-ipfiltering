@@ -112,7 +112,7 @@
                         </goals>
                         <configuration>
                             <includes>
-                                <include>io/gravitee/policy/IPFilteringPolicyConfiguration.class</include>
+                                <include>io/gravitee/policy/ipfiltering/IPFilteringPolicyConfiguration.class</include>
                             </includes>
                             <outputDirectory>${json-schema-generator-maven-plugin.outputDirectory}</outputDirectory>
                         </configuration>
