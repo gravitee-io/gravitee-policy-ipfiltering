@@ -1,0 +1,58 @@
+[[gravitee-policy-ipfiltering]]
+=== IP Filtering Policy
+
+https://github.com/gravitee-io/gravitee-policy-ipfiltering[Source code],
+http://build.gravitee.io/jenkins/job/gravitee-policy-ipfiltering/[Build]
+
+==== Scope
+|===
+|onRequest |onResponse
+
+|X
+|
+
+|===
+==== Description
+The IP Filtering policy lets you control access to your API via IP addresses.
+You can allow or deny a specific IP address or a range of IP by using https://tools.ietf.org/html/rfc1519[CIDR].
+
+The whitelist mode excludes all IPs excepts those with an IP which is part of the whitelist.
+The blacklist mode allows all IPs excepts those with an IP which is part of the blacklist.
+
+If an PI is part of the blacklist AND the whitelist, the policy reject the request.
+
+==== Configuration
+You can configure the policy with the following options :
+
+|===
+|Property |Required |Description |Type |Default
+
+|matchAllFromXForwardedFor
+|No
+|if set to true, each IP from the *X-Forwarded-For* header parameter is parsed.
+|boolean
+|_false_
+
+|whitelistIps
+|No
+|a list of allowed IPs with or without CIDR notation.
+|string list
+|_empty_
+
+|blacklistIps
+|No
+|a list of denyed IPs with or without CIDR notation.
+|string list
+|_empty_
+
+|===
+
+==== Http Status Code
+
+|===
+|Code |Message
+
+|403
+|    Your IP (0.0.0.0) or some proxies whereby your request pass through are not allowed to reach this resource
+
+|===
