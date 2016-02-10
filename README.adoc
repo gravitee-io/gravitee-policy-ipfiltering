@@ -2,7 +2,7 @@
 === IP Filtering Policy
 
 https://github.com/gravitee-io/gravitee-policy-ipfiltering[Source code],
-http://build.gravitee.io/jenkins/job/gravitee-policy-ipfiltering/[Build]
+image:http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-policy-ipfiltering["Build status", link="http://build.gravitee.io/jenkins/job/gravitee-policy-ipfiltering/"]
 
 ==== Scope
 |===
@@ -19,7 +19,7 @@ You can allow or deny a specific IP address or a range of IP by using https://to
 The whitelist mode excludes all IPs excepts those with an IP which is part of the whitelist.
 The blacklist mode allows all IPs excepts those with an IP which is part of the blacklist.
 
-If an PI is part of the blacklist AND the whitelist, the policy reject the request.
+If an IP is part of the blacklist and the whitelist, the policy reject the request.
 
 ==== Configuration
 You can configure the policy with the following options :
