@@ -1,4 +1,3 @@
-[[gravitee-policy-ipfiltering]]
 === IP Filtering Policy
 
 https://github.com/gravitee-io/gravitee-policy-ipfiltering[Source code],
@@ -47,12 +46,29 @@ You can configure the policy with the following options :
 
 |===
 
+
+[source, json]
+.Sample
+----
+"gravitee-policy-ipfiltering": {
+  "matchAllFromXForwardedFor": true,
+  "whitelistIps": [
+    "10.0.0.1",
+    "10.0.0.2/10"
+  ],
+  "blacklistIps": [
+    null
+  ]
+}
+----
+
 ==== Http Status Code
 
 |===
 |Code |Message
 
-|403
-|    Your IP (0.0.0.0) or some proxies whereby your request pass through are not allowed to reach this resource
+| ```403```
+| Your IP (0.0.0.0) or some proxies whereby your request pass through are not allowed to reach this resource
 
 |===
+
