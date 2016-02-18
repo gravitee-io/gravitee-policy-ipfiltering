@@ -50,7 +50,7 @@ You can configure the policy with the following options :
 [source, json]
 .Sample
 ----
-"gravitee-policy-ipfiltering": {
+"ip-filtering": {
   "matchAllFromXForwardedFor": true,
   "whitelistIps": [
     "10.0.0.1",
