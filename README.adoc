@@ -1,9 +1,9 @@
-=== IP Filtering Policy
+= IP Filtering Policy
 
 https://github.com/gravitee-io/gravitee-policy-ipfiltering[Source code],
 image:http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-policy-ipfiltering["Build status", link="http://build.gravitee.io/jenkins/job/gravitee-policy-ipfiltering/"]
 
-==== Scope
+== Scope
 |===
 |onRequest |onResponse
 
@@ -11,7 +11,7 @@ image:http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-policy-ipfi
 |
 
 |===
-==== Description
+== Description
 The IP Filtering policy lets you control access to your API via IP addresses.
 You can allow or deny a specific IP address or a range of IP by using https://tools.ietf.org/html/rfc1519[CIDR].
 
@@ -20,7 +20,7 @@ The blacklist mode allows all IPs excepts those with an IP which is part of the 
 
 If an IP is part of the blacklist and the whitelist, the policy reject the request.
 
-==== Configuration
+== Configuration
 You can configure the policy with the following options :
 
 |===
@@ -62,7 +62,7 @@ You can configure the policy with the following options :
 }
 ----
 
-==== Http Status Code
+== Http Status Code
 
 |===
 |Code |Message
