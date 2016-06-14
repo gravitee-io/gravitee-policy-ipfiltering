@@ -1,9 +1,13 @@
 = IP Filtering Policy
 
-https://github.com/gravitee-io/gravitee-policy-ipfiltering[Source code],
-image:http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-policy-ipfiltering["Build status", link="http://build.gravitee.io/jenkins/job/gravitee-policy-ipfiltering/"]
+ifdef::env-github[]
+image:https://img.shields.io/github/watchers/gravitee-io/gravitee-policy-ipfiltering.svg?style=social&maxAge=2592000)["GitHub", link="https://github.com/gravitee-io/gravitee-policy-ipfiltering"]
+image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-policy-ipfiltering/master["Build status", link="https://ci.gravitee.io/job/gravitee-io/job/gravitee-policy-ipfiltering/"]
+image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
+endif::[]
 
 == Scope
+
 |===
 |onRequest |onResponse
 
@@ -11,6 +15,7 @@ image:http://build.gravitee.io/jenkins/buildStatus/icon?job=gravitee-policy-ipfi
 |
 
 |===
+
 == Description
 The IP Filtering policy lets you control access to your API via IP addresses.
 You can allow or deny a specific IP address or a range of IP by using https://tools.ietf.org/html/rfc1519[CIDR].
