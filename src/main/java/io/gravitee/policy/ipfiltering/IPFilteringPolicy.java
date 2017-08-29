@@ -69,22 +69,10 @@ public class IPFilteringPolicy {
     }
 
     public void fail(PolicyChain policyChain, String remoteAddress) {
-        policyChain.failWith(new PolicyResult() {
-                @Override
-                public boolean isFailure() {
-                    return true;
-                }
-
-                @Override
-                public int httpStatusCode() {
-                    return HttpStatusCode.FORBIDDEN_403;
-                }
-
-                @Override
-                public String message() {
-                    return "Your IP (" + remoteAddress + ") or some proxies whereby your request pass through are not allowed to reach this resource.";
-                }
-            });
+        policyChain.failWith(PolicyResult.failure(
+                HttpStatusCode.FORBIDDEN_403,
+                "Your IP (" + remoteAddress + ") or some proxies whereby your request pass through are not allowed to reach this resource."
+        ));
     }
 
     public List<String> extractIps(Request request) {
