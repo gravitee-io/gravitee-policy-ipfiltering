@@ -22,7 +22,7 @@
 
     <groupId>io.gravitee.policy</groupId>
     <artifactId>gravitee-policy-ipfiltering</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.0</version>
 
     <name>Gravitee.io APIM - Policy - IP Filtering</name>
     <description>
@@ -37,9 +37,9 @@
     </parent>
 
     <properties>
-        <gravitee-gateway-api.version>1.5.0-SNAPSHOT</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>1.5.0</gravitee-gateway-api.version>
         <gravitee-policy-api.version>1.2.0</gravitee-policy-api.version>
-        <gravitee-common.version>1.5.0-SNAPSHOT</gravitee-common.version>
+        <gravitee-common.version>1.5.0</gravitee-common.version>
         <junit.version>4.12</junit.version>
 
         <json-schema-generator-maven-plugin.version>1.3.0</json-schema-generator-maven-plugin.version>
