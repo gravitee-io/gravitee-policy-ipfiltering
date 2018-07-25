@@ -22,6 +22,7 @@ import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
+import io.gravitee.policy.ipfiltering.IpOrCIDRBlock;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,7 +79,7 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldFailCausedIpInBlacklist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockConfiguration.getBlacklistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
         when(mockRequest.headers()).thenReturn(new HttpHeaders());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -91,7 +92,7 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldFailCausedIpNotInWhitelist() {
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockConfiguration.getWhitelistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
         when(mockRequest.headers()).thenReturn(new HttpHeaders());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -104,8 +105,8 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldFailCausedIpInBlacklistAndWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockConfiguration.getBlacklistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
+        when(mockConfiguration.getWhitelistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
         when(mockRequest.headers()).thenReturn(new HttpHeaders());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -118,8 +119,8 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldFailCausedIpInBlacklistAndNotInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
+        when(mockConfiguration.getBlacklistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
+        when(mockConfiguration.getWhitelistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.4"), new IpOrCIDRBlock("192.168.0.5"), new IpOrCIDRBlock("192.168.0.6")));
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
         when(mockRequest.headers()).thenReturn(new HttpHeaders());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -132,8 +133,8 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldFailCausedIpNotInBlacklistAndNotInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
+        when(mockConfiguration.getBlacklistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
+        when(mockConfiguration.getWhitelistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.4"), new IpOrCIDRBlock("192.168.0.5"), new IpOrCIDRBlock("192.168.0.6")));
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.7");
         when(mockRequest.headers()).thenReturn(new HttpHeaders());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -146,7 +147,7 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldSucceedCausedIpNotInBlacklistAndNothingInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockConfiguration.getBlacklistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
         when(mockRequest.headers()).thenReturn(new HttpHeaders());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -159,8 +160,8 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldSucceedCausedIpNotInBlacklistAndInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
+        when(mockConfiguration.getBlacklistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
+        when(mockConfiguration.getWhitelistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.4"), new IpOrCIDRBlock("192.168.0.5"), new IpOrCIDRBlock("192.168.0.6")));
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
         when(mockRequest.headers()).thenReturn(new HttpHeaders());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -173,8 +174,8 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldSucceedCausedIpsNotInBlacklistAndInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
+        when(mockConfiguration.getBlacklistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
+        when(mockConfiguration.getWhitelistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.4"), new IpOrCIDRBlock("192.168.0.5"), new IpOrCIDRBlock("192.168.0.6")));
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set(HttpHeaders.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
@@ -189,7 +190,7 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldFailedCausedIpsInBlacklist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockConfiguration.getBlacklistIpList()).thenReturn(Arrays.asList(new IpOrCIDRBlock("192.168.0.1"), new IpOrCIDRBlock("192.168.0.2"), new IpOrCIDRBlock("192.168.0.3")));
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set(HttpHeaders.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");

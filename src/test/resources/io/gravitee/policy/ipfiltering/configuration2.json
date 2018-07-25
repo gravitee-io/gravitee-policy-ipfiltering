@@ -1,0 +1,9 @@
+{
+  "matchAllFromXForwardedFor": false,
+  "whitelistIps": [
+    {"info":"TBD","ipOrCIDR":"test"},{"info":"TBD","ipOrCIDR":"test"}
+  ],
+  "blacklistIps": [
+    {"info":"TBD","ipOrCIDR":"test"},{"info":"TBD","ipOrCIDR":"test"}
+  ]
+}

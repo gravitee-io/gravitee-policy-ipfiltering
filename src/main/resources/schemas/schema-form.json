@@ -6,20 +6,42 @@
       "title" : "Use X-Forwarded-For header",
       "type" : "boolean"
     },
-    "whitelistIps" : {
+    "whitelistIpList" : {
       "title" : "IPs Whitelist (CIDR allowed)",
       "type" : "array",
       "items" : {
+        "type" : "object",
+        "id" : "urn:jsonschema:io:gravitee:policy:ipfiltering:configuration:IpOrCIDRBlock",
         "title" : "IP or CIDR",
-        "type" : "string"
+        "properties" : {
+          "info": {
+            "title": "Information about entry",
+            "type": "string"
+          },
+          "ipOrCIDR": {
+            "title": "IP or CIDR",
+            "type": "string"
+          }
+        }
       }
     },
-    "blacklistIps" : {
+    "blacklistIpList" : {
       "title" : "IPs Blacklist (CIDR allowed)",
       "type" : "array",
       "items" : {
+        "type" : "object",
+        "id" : "urn:jsonschema:io:gravitee:policy:ipfiltering:configuration:IpOrCIDRBlock",
         "title" : "IP or CIDR",
-        "type" : "string"
+        "properties" : {
+          "info": {
+            "title": "Information about entry",
+            "type": "string"
+          },
+          "ipOrCIDR": {
+            "title": "IP or CIDR",
+            "type": "string"
+          }
+        }
       }
     }
   }

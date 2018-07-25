@@ -15,9 +15,12 @@
  */
 package io.gravitee.policy.ipfiltering;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.policy.api.PolicyConfiguration;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
@@ -30,12 +33,14 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
     /**
      * The list of IP that are allowed to be call the api.
      */
-    private List<String> whitelistIps;
+    @JsonProperty("whitelistIps")
+    private List<IpOrCIDRBlock> whitelistIpList;
 
     /**
      * The list of IP that are not allowed to be call the api.
      */
-    private List<String> blacklistIps;
+    @JsonProperty("blacklistIps")
+    private List<IpOrCIDRBlock> blacklistIpList;
 
     public boolean isMatchAllFromXForwardedFor() {
         return matchAllFromXForwardedFor;
@@ -45,19 +50,40 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
         this.matchAllFromXForwardedFor = matchAllFromXForwardedFor;
     }
 
-    public List<String> getWhitelistIps() {
-        return whitelistIps;
+    public List<IpOrCIDRBlock> getWhitelistIpList() {
+        return whitelistIpList;
     }
 
-    public void setWhitelistIps(List<String> whitelistIps) {
-        this.whitelistIps = whitelistIps;
+    public void setWhitelistIpList(List<IpOrCIDRBlock> whitelistIpList) {
+        this.whitelistIpList = whitelistIpList;
     }
 
-    public List<String> getBlacklistIps() {
-        return blacklistIps;
+    public List<IpOrCIDRBlock> getBlacklistIpList() {
+        return blacklistIpList;
     }
 
-    public void setBlacklistIps(List<String> blacklistIps) {
-        this.blacklistIps = blacklistIps;
+    public void setBlacklistIpList(List<IpOrCIDRBlock> blacklistIpList) {
+        this.blacklistIpList = blacklistIpList;
     }
+
+    /*
+    public List<String> getWhitelistIps(){
+        if (whitelistIpList != null) {
+            return whitelistIpList.stream()
+                    .map(IpOrCIDRBlock::getIpOrCIDR)
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
+    }
+
+    public List<String> getBlacklistIps(){
+        if( blacklistIpList != null) {
+            return blacklistIpList.stream()
+                    .map(IpOrCIDRBlock::getIpOrCIDR)
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+    */
 }

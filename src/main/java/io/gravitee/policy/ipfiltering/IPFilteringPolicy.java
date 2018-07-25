@@ -50,15 +50,15 @@ public class IPFilteringPolicy {
         List<String> ips = extractIps(request);
 
         final boolean isBlacklisted =
-                !(configuration.getBlacklistIps() == null || configuration.getBlacklistIps().isEmpty())
-                && ips.stream().anyMatch(ip -> isFiltered(ip, configuration.getBlacklistIps()));
+                !(configuration.getBlacklistIpList() == null || configuration.getBlacklistIpList().isEmpty())
+                && ips.stream().anyMatch(ip -> isFiltered(ip, configuration.getBlacklistIpList().stream().map(IpOrCIDRBlock::getIpOrCIDR).collect(Collectors.toList())));
         if(isBlacklisted) {
             fail(policyChain, request.remoteAddress());
             return;
         } else {
             final boolean isWhitelisted =
-                    (configuration.getWhitelistIps() == null || configuration.getWhitelistIps().isEmpty())
-                    || ips.stream().anyMatch(ip -> isFiltered(ip, configuration.getWhitelistIps()));
+                    (configuration.getWhitelistIpList() == null || configuration.getWhitelistIpList().isEmpty())
+                    || ips.stream().anyMatch(ip -> isFiltered(ip, configuration.getWhitelistIpList().stream().map(IpOrCIDRBlock::getIpOrCIDR).collect(Collectors.toList())));
             if(!isWhitelisted) {
                 fail(policyChain, request.remoteAddress());
                 return;

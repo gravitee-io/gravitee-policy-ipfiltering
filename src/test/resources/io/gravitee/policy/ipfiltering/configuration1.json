@@ -1,0 +1,9 @@
+{
+  "matchAllFromXForwardedFor": false,
+  "whitelistIps": [
+    "test"
+  ],
+  "blacklistIps": [
+    "test"
+  ]
+}
