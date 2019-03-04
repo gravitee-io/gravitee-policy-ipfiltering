@@ -23,8 +23,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import static org.junit.Assert.*;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.List;
 
@@ -63,7 +64,6 @@ public class ExtractIps {
     @Test
     public void shouldReturnXFF() {
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        when(mockRequest.remoteAddress()).thenReturn("127.0.0.1");
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set(HttpHeaders.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
