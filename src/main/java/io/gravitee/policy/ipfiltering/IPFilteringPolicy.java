@@ -17,23 +17,41 @@ package io.gravitee.policy.ipfiltering;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.dns.DnsClient;
 import org.apache.commons.net.util.SubnetUtils;
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-@SuppressWarnings("unused")
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+
+/**
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class IPFilteringPolicy {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(IPFilteringPolicy.class);
 
     /**
      * The associated configuration to this IPFiltering Policy
      */
-    private IPFilteringPolicyConfiguration configuration;
+    private final IPFilteringPolicyConfiguration configuration;
 
     /**
      * Create a new IPFiltering Policy instance based on its associated configuration
@@ -45,30 +63,94 @@ public class IPFilteringPolicy {
     }
 
     @OnRequest
-    public void onRequest(Request request, Response response, PolicyChain policyChain) {
+    public void onRequest(ExecutionContext executionContext, PolicyChain policyChain) {
+        final DnsClient dnsClient = executionContext.getComponent(Vertx.class).createDnsClient();
+        final List<String> ips = extractIps(executionContext.request());
+        final List<Future> futures = new ArrayList<>();
 
-        List<String> ips = extractIps(request);
-
-        final boolean isBlacklisted =
-                !(configuration.getBlacklistIps() == null || configuration.getBlacklistIps().isEmpty())
-                && ips.stream().anyMatch(ip -> isFiltered(ip, configuration.getBlacklistIps()));
-        if(isBlacklisted) {
-            fail(policyChain, request.remoteAddress());
-            return;
-        } else {
-            final boolean isWhitelisted =
-                    (configuration.getWhitelistIps() == null || configuration.getWhitelistIps().isEmpty())
-                    || ips.stream().anyMatch(ip -> isFiltered(ip, configuration.getWhitelistIps()));
-            if(!isWhitelisted) {
-                fail(policyChain, request.remoteAddress());
+        if (configuration.getBlacklistIps() != null && !configuration.getBlacklistIps().isEmpty()) {
+            final List<String> filteredIps = new ArrayList<>();
+            final List<String> filteredHosts = new ArrayList<>();
+            processFilteredLists(configuration.getBlacklistIps(), filteredIps, filteredHosts);
+            if (!filteredIps.isEmpty() && ips.stream().anyMatch(ip -> isFiltered(ip, filteredIps))) {
+                fail(policyChain, executionContext.request().remoteAddress());
                 return;
             }
+
+            filteredHosts.forEach(host -> {
+                final Promise<Void> promise = Promise.promise();
+                futures.add(promise.future());
+                dnsClient.lookup(host, event -> {
+                    if (event.succeeded()) {
+                        if (executionContext.request().remoteAddress().equals(event.result())) {
+                            promise.fail("");
+                        } else {
+                            promise.complete();
+                        }
+                    } else {
+                        LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
+                        promise.complete();
+                    }
+                });
+            });
         }
 
-        policyChain.doNext(request, response);
+        if (configuration.getWhitelistIps() != null && !configuration.getWhitelistIps().isEmpty()) {
+            final List<String> filteredIps = new ArrayList<>();
+            final List<String> filteredHosts = new ArrayList<>();
+            processFilteredLists(configuration.getWhitelistIps(), filteredIps, filteredHosts);
+            if (!filteredIps.isEmpty() && ips.stream().noneMatch(ip -> isFiltered(ip, filteredIps))) {
+                fail(policyChain, executionContext.request().remoteAddress());
+                return;
+            }
+
+            filteredHosts.forEach(host -> {
+                final Promise<Void> promise = Promise.promise();
+                futures.add(promise.future());
+                dnsClient.lookup(host, event -> {
+                    if (event.succeeded()) {
+                        if (!executionContext.request().remoteAddress().equals(event.result())) {
+                            promise.fail("");
+                        } else {
+                            promise.complete();
+                        }
+                    } else {
+                        LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
+                        promise.complete();
+                    }
+                });
+            });
+        }
+
+        if (futures.isEmpty()) {
+            policyChain.doNext(executionContext.request(), executionContext.response());
+        } else {
+            CompositeFuture.all(futures)
+                    .onSuccess(__ -> policyChain.doNext(executionContext.request(), executionContext.response()))
+                    .onFailure(__ -> fail(policyChain, executionContext.request().remoteAddress()))
+            ;
+        }
     }
 
-    public void fail(PolicyChain policyChain, String remoteAddress) {
+    private void processFilteredLists(final List<String> filteredList, final List<String> filteredIps,
+                                      final List<String> filteredHosts) {
+        filteredList.forEach(filteredItem -> {
+            final int index = filteredItem.indexOf('/');
+            final String filteredItemToCheck;
+            if (index != -1) {
+                filteredItemToCheck = filteredItem.substring(0, index);
+            } else {
+                filteredItemToCheck = filteredItem;
+            }
+            if (InetAddressValidator.getInstance().isValid(filteredItemToCheck)) {
+                filteredIps.add(filteredItem);
+            } else {
+                filteredHosts.add(filteredItem);
+            }
+        });
+    }
+
+    private void fail(PolicyChain policyChain, String remoteAddress) {
         policyChain.failWith(PolicyResult.failure(
                 HttpStatusCode.FORBIDDEN_403,
                 "Your IP (" + remoteAddress + ") or some proxies whereby your request pass through are not allowed to reach this resource."
@@ -82,10 +164,10 @@ public class IPFilteringPolicy {
                 && request.headers() != null
                 && request.headers().get(HttpHeaders.X_FORWARDED_FOR) != null
                 && !request.headers().get(HttpHeaders.X_FORWARDED_FOR).isEmpty()) {
-            ips = Arrays.asList(request.headers().get(HttpHeaders.X_FORWARDED_FOR).get(0).split(","))
-                    .stream().map(String::trim).collect(Collectors.toList());
+            ips = Arrays.stream(request.headers().get(HttpHeaders.X_FORWARDED_FOR).get(0).split(","))
+                    .map(String::trim).collect(toList());
         } else {
-            ips = Collections.singletonList(request.remoteAddress());
+            ips = singletonList(request.remoteAddress());
         }
         return ips;
     }

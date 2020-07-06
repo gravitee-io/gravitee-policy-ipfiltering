@@ -7,18 +7,18 @@
       "type" : "boolean"
     },
     "whitelistIps" : {
-      "title" : "IPs Whitelist (CIDR allowed)",
+      "title" : "IPs Whitelist (CIDR and hosts allowed)",
       "type" : "array",
       "items" : {
-        "title" : "IP or CIDR",
+        "title" : "IP / CIDR / Host",
         "type" : "string"
       }
     },
     "blacklistIps" : {
-      "title" : "IPs Blacklist (CIDR allowed)",
+      "title" : "IPs Blacklist (CIDR and hosts allowed)",
       "type" : "array",
       "items" : {
-        "title" : "IP or CIDR",
+        "title" : "IP / CIDR / Host",
         "type" : "string"
       }
     }
