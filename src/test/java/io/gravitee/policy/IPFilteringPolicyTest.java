@@ -16,12 +16,15 @@
 package io.gravitee.policy;
 
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
+import io.vertx.core.Vertx;
+import io.vertx.core.dns.DnsClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,21 +38,29 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(MockitoJUnitRunner.class)
 public class IPFilteringPolicyTest {
+    
+    @Mock
+    ExecutionContext executionContext;
     @Mock
     Request mockRequest;
-
     @Mock
     Response mockResponse;
-
     @Mock
     PolicyChain mockPolicychain;
-
     @Mock
     IPFilteringPolicyConfiguration mockConfiguration;
+    @Mock
+    Vertx vertx;
+    @Mock
+    DnsClient dnsClient;
 
     @Before
     public void init() {
         initMocks(this);
+        when(executionContext.request()).thenReturn(mockRequest);
+        when(executionContext.response()).thenReturn(mockResponse);
+        when(executionContext.getComponent(Vertx.class)).thenReturn(vertx);
+        when(vertx.createDnsClient()).thenReturn(dnsClient);
     }
 
     @Test
@@ -57,7 +68,7 @@ public class IPFilteringPolicyTest {
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(false);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockConfiguration, times(1)).isMatchAllFromXForwardedFor();
         verify(mockRequest, never()).headers();
@@ -69,12 +80,11 @@ public class IPFilteringPolicyTest {
         when(mockRequest.headers()).thenReturn(new HttpHeaders());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockConfiguration, times(1)).isMatchAllFromXForwardedFor();
         verify(mockRequest, atLeastOnce()).headers();
     }
-
 
     @Test
     public void shouldFailCausedIpInBlacklist() {
@@ -82,7 +92,7 @@ public class IPFilteringPolicyTest {
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
         verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
@@ -94,7 +104,7 @@ public class IPFilteringPolicyTest {
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
         verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
@@ -106,7 +116,7 @@ public class IPFilteringPolicyTest {
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
         verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
@@ -119,7 +129,7 @@ public class IPFilteringPolicyTest {
 
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
         verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
@@ -132,7 +142,7 @@ public class IPFilteringPolicyTest {
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.7");
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
         verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
@@ -144,7 +154,7 @@ public class IPFilteringPolicyTest {
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
         verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
@@ -157,7 +167,7 @@ public class IPFilteringPolicyTest {
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
         verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
@@ -173,7 +183,7 @@ public class IPFilteringPolicyTest {
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
         verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
@@ -188,7 +198,7 @@ public class IPFilteringPolicyTest {
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
-        policy.onRequest(mockRequest, mockResponse, mockPolicychain);
+        policy.onRequest(executionContext, mockPolicychain);
 
         verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
         verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));

@@ -33,7 +33,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>15</version>
+        <version>19</version>
     </parent>
 
     <properties>
@@ -46,6 +46,7 @@
 
         <maven-assembly-plugin.version>2.5.5</maven-assembly-plugin.version>
         <commons-net.version>3.6</commons-net.version>
+        <commons-validator.version>1.6</commons-validator.version>
     </properties>
 
     <dependencies>
@@ -68,6 +69,20 @@
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
             <version>${gravitee-common.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>${commons-validator.version}</version>
+        </dependency>
+
+        <!-- Vert.x -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>${vertx.version}</version>
             <scope>provided</scope>
         </dependency>
 
