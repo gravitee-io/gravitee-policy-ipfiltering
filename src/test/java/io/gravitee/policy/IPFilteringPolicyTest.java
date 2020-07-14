@@ -24,7 +24,6 @@ import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
 import io.vertx.core.Vertx;
-import io.vertx.core.dns.DnsClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,18 +48,13 @@ public class IPFilteringPolicyTest {
     PolicyChain mockPolicychain;
     @Mock
     IPFilteringPolicyConfiguration mockConfiguration;
-    @Mock
-    Vertx vertx;
-    @Mock
-    DnsClient dnsClient;
 
     @Before
     public void init() {
         initMocks(this);
         when(executionContext.request()).thenReturn(mockRequest);
         when(executionContext.response()).thenReturn(mockResponse);
-        when(executionContext.getComponent(Vertx.class)).thenReturn(vertx);
-        when(vertx.createDnsClient()).thenReturn(dnsClient);
+        when(executionContext.getComponent(Vertx.class)).thenReturn(Vertx.vertx());
     }
 
     @Test
