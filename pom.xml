@@ -45,7 +45,7 @@
         <json-schema-generator-maven-plugin.outputDirectory>${project.build.directory}/schemas</json-schema-generator-maven-plugin.outputDirectory>
 
         <maven-assembly-plugin.version>2.5.5</maven-assembly-plugin.version>
-        <commons-net.version>3.6</commons-net.version>
+        <commons-net.version>3.7</commons-net.version>
         <commons-validator.version>1.6</commons-validator.version>
     </properties>
 
