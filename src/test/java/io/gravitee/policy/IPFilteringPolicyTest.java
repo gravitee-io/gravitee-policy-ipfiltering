@@ -54,7 +54,6 @@ public class IPFilteringPolicyTest {
         initMocks(this);
         when(executionContext.request()).thenReturn(mockRequest);
         when(executionContext.response()).thenReturn(mockResponse);
-        when(executionContext.getComponent(Vertx.class)).thenReturn(Vertx.vertx());
     }
 
     @Test
