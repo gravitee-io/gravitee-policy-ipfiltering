@@ -53,6 +53,9 @@ public class IPFilteringPolicy {
      */
     private final IPFilteringPolicyConfiguration configuration;
 
+    // DNS client is created lazily and only if required
+    private static DnsClient dnsClient;
+
     /**
      * Create a new IPFiltering Policy instance based on its associated configuration
      *
@@ -64,7 +67,6 @@ public class IPFilteringPolicy {
 
     @OnRequest
     public void onRequest(ExecutionContext executionContext, PolicyChain policyChain) {
-        final DnsClient dnsClient = executionContext.getComponent(Vertx.class).createDnsClient();
         final List<String> ips = extractIps(executionContext.request());
         final List<Future> futures = new ArrayList<>();
 
@@ -77,22 +79,25 @@ public class IPFilteringPolicy {
                 return;
             }
 
-            filteredHosts.forEach(host -> {
-                final Promise<Void> promise = Promise.promise();
-                futures.add(promise.future());
-                dnsClient.lookup(host, event -> {
-                    if (event.succeeded()) {
-                        if (executionContext.request().remoteAddress().equals(event.result())) {
-                            promise.fail("");
+            if (!filteredHosts.isEmpty()) {
+                DnsClient dnsClient = getDnsClient(executionContext);
+                filteredHosts.forEach(host -> {
+                    final Promise<Void> promise = Promise.promise();
+                    futures.add(promise.future());
+                    dnsClient.lookup(host, event -> {
+                        if (event.succeeded()) {
+                            if (executionContext.request().remoteAddress().equals(event.result())) {
+                                promise.fail("");
+                            } else {
+                                promise.complete();
+                            }
                         } else {
+                            LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
                             promise.complete();
                         }
-                    } else {
-                        LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
-                        promise.complete();
-                    }
+                    });
                 });
-            });
+            }
         }
 
         if (configuration.getWhitelistIps() != null && !configuration.getWhitelistIps().isEmpty()) {
@@ -104,22 +109,25 @@ public class IPFilteringPolicy {
                 return;
             }
 
-            filteredHosts.forEach(host -> {
-                final Promise<Void> promise = Promise.promise();
-                futures.add(promise.future());
-                dnsClient.lookup(host, event -> {
-                    if (event.succeeded()) {
-                        if (!executionContext.request().remoteAddress().equals(event.result())) {
-                            promise.fail("");
+            if (!filteredHosts.isEmpty()) {
+                DnsClient dnsClient = getDnsClient(executionContext);
+                filteredHosts.forEach(host -> {
+                    final Promise<Void> promise = Promise.promise();
+                    futures.add(promise.future());
+                    dnsClient.lookup(host, event -> {
+                        if (event.succeeded()) {
+                            if (!executionContext.request().remoteAddress().equals(event.result())) {
+                                promise.fail("");
+                            } else {
+                                promise.complete();
+                            }
                         } else {
+                            LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
                             promise.complete();
                         }
-                    } else {
-                        LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
-                        promise.complete();
-                    }
+                    });
                 });
-            });
+            }
         }
 
         if (futures.isEmpty()) {
@@ -127,8 +135,7 @@ public class IPFilteringPolicy {
         } else {
             CompositeFuture.all(futures)
                     .onSuccess(__ -> policyChain.doNext(executionContext.request(), executionContext.response()))
-                    .onFailure(__ -> fail(policyChain, executionContext.request().remoteAddress()))
-            ;
+                    .onFailure(__ -> fail(policyChain, executionContext.request().remoteAddress()));
         }
     }
 
@@ -185,5 +192,13 @@ public class IPFilteringPolicy {
                         return false;
                     }
                 });
+    }
+
+    private DnsClient getDnsClient(ExecutionContext context) {
+        if (dnsClient == null) {
+            dnsClient = context.getComponent(Vertx.class).createDnsClient();
+        }
+
+        return dnsClient;
     }
 }
