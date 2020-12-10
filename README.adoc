@@ -72,7 +72,7 @@ You can configure the policy with the following options:
 
 == Errors
 
-== HTTP status code
+=== HTTP status code
 
 |===
 |Code |Message
