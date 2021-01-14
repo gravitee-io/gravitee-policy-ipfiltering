@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.mockito.Mockito.*;
@@ -195,5 +196,23 @@ public class IPFilteringPolicyTest {
 
         verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
         verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void shouldSucceedWithNullValue() {
+        ArrayList<String> ips = new ArrayList<>();
+        ips.add(null);
+
+        when(mockConfiguration.getBlacklistIps()).thenReturn(ips);
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set(HttpHeaders.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
+        when(mockRequest.headers()).thenReturn(httpHeaders);
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
     }
 }
