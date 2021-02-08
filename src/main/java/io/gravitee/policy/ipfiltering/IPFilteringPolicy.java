@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -141,7 +143,10 @@ public class IPFilteringPolicy {
 
     private void processFilteredLists(final List<String> filteredList, final List<String> filteredIps,
                                       final List<String> filteredHosts) {
-        filteredList.forEach(filteredItem -> {
+        filteredList
+                .stream()
+                .filter(Objects::nonNull)
+                .forEach(filteredItem -> {
             final int index = filteredItem.indexOf('/');
             final String filteredItemToCheck;
             if (index != -1) {

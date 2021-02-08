@@ -11,7 +11,8 @@
       "type" : "array",
       "items" : {
         "title" : "IP / CIDR / Host",
-        "type" : "string"
+        "type" : "string",
+        "minLength": 1
       }
     },
     "blacklistIps" : {
@@ -19,7 +20,8 @@
       "type" : "array",
       "items" : {
         "title" : "IP / CIDR / Host",
-        "type" : "string"
+        "type" : "string",
+        "minLength": 1
       }
     }
   }
