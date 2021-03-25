@@ -27,6 +27,10 @@ The blacklist takes precedence, so if an IP address is included in both lists, t
 
 You can specify a host to be resolved and checked against the remote IP.
 
+=== Policy identifier
+
+You can enable or disable the policy with policy identifier `ip-filtering`.
+
 == Configuration
 You can configure the policy with the following options:
 
