@@ -15,15 +15,15 @@
  */
 package io.gravitee.policy;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
-import io.vertx.core.Vertx;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,7 +71,7 @@ public class IPFilteringPolicyTest {
     @Test
     public void shouldTestXFF() throws Exception {
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        when(mockRequest.headers()).thenReturn(new HttpHeaders());
+        when(mockRequest.headers()).thenReturn(HttpHeaders.create());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
         policy.onRequest(executionContext, mockPolicychain);
@@ -172,8 +172,9 @@ public class IPFilteringPolicyTest {
         when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
         when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
+        HttpHeaders httpHeaders = HttpHeaders
+                .create()
+                .set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
@@ -187,8 +188,9 @@ public class IPFilteringPolicyTest {
     public void shouldFailedCausedIpsInBlacklist() {
         when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
+        HttpHeaders httpHeaders = HttpHeaders
+                .create()
+                .set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
@@ -205,8 +207,9 @@ public class IPFilteringPolicyTest {
 
         when(mockConfiguration.getBlacklistIps()).thenReturn(ips);
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
+        HttpHeaders httpHeaders = HttpHeaders
+                .create()
+                .set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 

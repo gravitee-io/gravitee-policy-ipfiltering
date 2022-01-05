@@ -15,8 +15,9 @@
  */
 package io.gravitee.policy;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
 import org.junit.Before;
@@ -63,8 +64,9 @@ public class ExtractIpsTest {
     @Test
     public void shouldReturnXFF() {
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
+        HttpHeaders httpHeaders = HttpHeaders
+                .create()
+                .set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
