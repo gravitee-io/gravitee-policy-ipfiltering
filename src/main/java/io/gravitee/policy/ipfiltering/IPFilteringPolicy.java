@@ -15,10 +15,10 @@
  */
 package io.gravitee.policy.ipfiltering;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
@@ -174,9 +174,9 @@ public class IPFilteringPolicy {
 
         if (configuration.isMatchAllFromXForwardedFor()
                 && request.headers() != null
-                && request.headers().get(HttpHeaders.X_FORWARDED_FOR) != null
-                && !request.headers().get(HttpHeaders.X_FORWARDED_FOR).isEmpty()) {
-            ips = Arrays.stream(request.headers().get(HttpHeaders.X_FORWARDED_FOR).get(0).split(","))
+                && request.headers().get(HttpHeaderNames.X_FORWARDED_FOR) != null
+                && !request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).isEmpty()) {
+            ips = Arrays.stream(request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).split(","))
                     .map(String::trim).collect(toList());
         } else {
             ips = singletonList(request.remoteAddress());
