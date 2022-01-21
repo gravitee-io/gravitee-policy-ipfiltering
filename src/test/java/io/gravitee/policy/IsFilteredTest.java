@@ -15,13 +15,13 @@
  */
 package io.gravitee.policy;
 
-import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
-import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
-import org.junit.Test;
 import static org.junit.Assert.*;
 
+import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
+import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
 import java.util.Arrays;
 import java.util.Collections;
+import org.junit.Test;
 
 public class IsFilteredTest {
 
@@ -69,6 +69,7 @@ public class IsFilteredTest {
 
         assertTrue(filtered);
     }
+
     @Test
     public void shouldFilteredIfIpIsNotAnIP() {
         IPFilteringPolicy policy = new IPFilteringPolicy(new IPFilteringPolicyConfiguration());
@@ -92,10 +93,10 @@ public class IsFilteredTest {
     public void shouldFilteredCIDR_ForMask_24() {
         IPFilteringPolicy policy = new IPFilteringPolicy(new IPFilteringPolicyConfiguration());
 
-        for(int i = 1; i < 255; i++) {
+        for (int i = 1; i < 255; i++) {
             boolean filtered = policy.isFiltered("192.168.0." + i, Collections.singletonList("192.168.0.0/24"));
 
-            assertTrue("should filter 192.168.0."+i, filtered);
+            assertTrue("should filter 192.168.0." + i, filtered);
         }
     }
 

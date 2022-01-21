@@ -15,25 +15,25 @@
  */
 package io.gravitee.policy;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 @RunWith(MockitoJUnitRunner.class)
 public class ExtractIpsTest {
+
     @Mock
     Request mockRequest;
 
@@ -64,9 +64,7 @@ public class ExtractIpsTest {
     @Test
     public void shouldReturnXFF() {
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        HttpHeaders httpHeaders = HttpHeaders
-                .create()
-                .set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
+        HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
