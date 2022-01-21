@@ -15,6 +15,9 @@
  */
 package io.gravitee.policy.ipfiltering;
 
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -27,19 +30,15 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.dns.DnsClient;
-import org.apache.commons.net.util.SubnetUtils;
-import org.apache.commons.validator.routines.InetAddressValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
-
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
+import org.apache.commons.net.util.SubnetUtils;
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -86,18 +85,21 @@ public class IPFilteringPolicy {
                 filteredHosts.forEach(host -> {
                     final Promise<Void> promise = Promise.promise();
                     futures.add(promise.future());
-                    dnsClient.lookup(host, event -> {
-                        if (event.succeeded()) {
-                            if (executionContext.request().remoteAddress().equals(event.result())) {
-                                promise.fail("");
+                    dnsClient.lookup(
+                        host,
+                        event -> {
+                            if (event.succeeded()) {
+                                if (executionContext.request().remoteAddress().equals(event.result())) {
+                                    promise.fail("");
+                                } else {
+                                    promise.complete();
+                                }
                             } else {
+                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
                                 promise.complete();
                             }
-                        } else {
-                            LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
-                            promise.complete();
                         }
-                    });
+                    );
                 });
             }
         }
@@ -116,18 +118,21 @@ public class IPFilteringPolicy {
                 filteredHosts.forEach(host -> {
                     final Promise<Void> promise = Promise.promise();
                     futures.add(promise.future());
-                    dnsClient.lookup(host, event -> {
-                        if (event.succeeded()) {
-                            if (!executionContext.request().remoteAddress().equals(event.result())) {
-                                promise.fail("");
+                    dnsClient.lookup(
+                        host,
+                        event -> {
+                            if (event.succeeded()) {
+                                if (!executionContext.request().remoteAddress().equals(event.result())) {
+                                    promise.fail("");
+                                } else {
+                                    promise.complete();
+                                }
                             } else {
+                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
                                 promise.complete();
                             }
-                        } else {
-                            LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
-                            promise.complete();
                         }
-                    });
+                    );
                 });
             }
         }
@@ -135,49 +140,52 @@ public class IPFilteringPolicy {
         if (futures.isEmpty()) {
             policyChain.doNext(executionContext.request(), executionContext.response());
         } else {
-            CompositeFuture.all(futures)
-                    .onSuccess(__ -> policyChain.doNext(executionContext.request(), executionContext.response()))
-                    .onFailure(__ -> fail(policyChain, executionContext.request().remoteAddress()));
+            CompositeFuture
+                .all(futures)
+                .onSuccess(__ -> policyChain.doNext(executionContext.request(), executionContext.response()))
+                .onFailure(__ -> fail(policyChain, executionContext.request().remoteAddress()));
         }
     }
 
-    private void processFilteredLists(final List<String> filteredList, final List<String> filteredIps,
-                                      final List<String> filteredHosts) {
+    private void processFilteredLists(final List<String> filteredList, final List<String> filteredIps, final List<String> filteredHosts) {
         filteredList
-                .stream()
-                .filter(Objects::nonNull)
-                .forEach(filteredItem -> {
-            final int index = filteredItem.indexOf('/');
-            final String filteredItemToCheck;
-            if (index != -1) {
-                filteredItemToCheck = filteredItem.substring(0, index);
-            } else {
-                filteredItemToCheck = filteredItem;
-            }
-            if (InetAddressValidator.getInstance().isValid(filteredItemToCheck)) {
-                filteredIps.add(filteredItem);
-            } else {
-                filteredHosts.add(filteredItem);
-            }
-        });
+            .stream()
+            .filter(Objects::nonNull)
+            .forEach(filteredItem -> {
+                final int index = filteredItem.indexOf('/');
+                final String filteredItemToCheck;
+                if (index != -1) {
+                    filteredItemToCheck = filteredItem.substring(0, index);
+                } else {
+                    filteredItemToCheck = filteredItem;
+                }
+                if (InetAddressValidator.getInstance().isValid(filteredItemToCheck)) {
+                    filteredIps.add(filteredItem);
+                } else {
+                    filteredHosts.add(filteredItem);
+                }
+            });
     }
 
     private void fail(PolicyChain policyChain, String remoteAddress) {
-        policyChain.failWith(PolicyResult.failure(
+        policyChain.failWith(
+            PolicyResult.failure(
                 HttpStatusCode.FORBIDDEN_403,
                 "Your IP (" + remoteAddress + ") or some proxies whereby your request pass through are not allowed to reach this resource."
-        ));
+            )
+        );
     }
 
     public List<String> extractIps(Request request) {
         List<String> ips;
 
-        if (configuration.isMatchAllFromXForwardedFor()
-                && request.headers() != null
-                && request.headers().get(HttpHeaderNames.X_FORWARDED_FOR) != null
-                && !request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).isEmpty()) {
-            ips = Arrays.stream(request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).split(","))
-                    .map(String::trim).collect(toList());
+        if (
+            configuration.isMatchAllFromXForwardedFor() &&
+            request.headers() != null &&
+            request.headers().get(HttpHeaderNames.X_FORWARDED_FOR) != null &&
+            !request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).isEmpty()
+        ) {
+            ips = Arrays.stream(request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).split(",")).map(String::trim).collect(toList());
         } else {
             ips = singletonList(request.remoteAddress());
         }
@@ -185,8 +193,11 @@ public class IPFilteringPolicy {
     }
 
     public boolean isFiltered(String ip, List<String> filteredList) {
-        return !(null == ip || ip.isEmpty())
-                && filteredList.stream().anyMatch(filterIp -> {
+        return (
+            !(null == ip || ip.isEmpty()) &&
+            filteredList
+                .stream()
+                .anyMatch(filterIp -> {
                     if (filterIp.equals(ip)) {
                         return true;
                     }
@@ -196,7 +207,8 @@ public class IPFilteringPolicy {
                     } catch (IllegalArgumentException iae) {
                         return false;
                     }
-                });
+                })
+        );
     }
 
     private DnsClient getDnsClient(ExecutionContext context) {
