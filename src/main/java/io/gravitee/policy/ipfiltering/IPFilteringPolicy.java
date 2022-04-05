@@ -19,6 +19,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.util.Maps;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
@@ -48,6 +49,8 @@ import org.slf4j.LoggerFactory;
 public class IPFilteringPolicy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IPFilteringPolicy.class);
+
+    private static final String IPFILTERING_FORBIDDEN = "IPFILTERING_FORBIDDEN";
 
     /**
      * The associated configuration to this IPFiltering Policy
@@ -170,8 +173,10 @@ public class IPFilteringPolicy {
     private void fail(PolicyChain policyChain, String remoteAddress) {
         policyChain.failWith(
             PolicyResult.failure(
+                IPFILTERING_FORBIDDEN,
                 HttpStatusCode.FORBIDDEN_403,
-                "Your IP (" + remoteAddress + ") or some proxies whereby your request pass through are not allowed to reach this resource."
+                "Your IP (" + remoteAddress + ") or some proxies whereby your request pass through are not allowed to reach this resource.",
+                Maps.<String, Object>builder().put("address", remoteAddress).build()
             )
         );
     }

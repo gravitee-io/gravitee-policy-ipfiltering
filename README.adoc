@@ -83,3 +83,20 @@ You can configure the policy with the following options:
 | Your IP (0.0.0.0) or one of the proxies your request passed through is not allowed to reach this resource
 
 |===
+
+=== Default response override
+
+You can use the response template feature to override the default responses provided by the policy. These templates must be defined at the API level (see the API Console *Response Templates*
+option in the API *Proxy* menu).
+
+=== Error keys
+
+The error keys sent by this policy are as follows:
+
+[cols="2*", options="header"]
+|===
+^|Key
+^|Parameters
+
+.^|IPFILTERING_FORBIDDEN
+^.^|address
