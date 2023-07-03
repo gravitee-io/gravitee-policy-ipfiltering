@@ -1,6 +1,7 @@
 {
-  "type" : "object",
-  "id" : "urn:jsonschema:io:gravitee:policy:IPFilteringPolicyConfiguration",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
   "properties" : {
     "matchAllFromXForwardedFor" : {
       "title" : "Use X-Forwarded-For header",
