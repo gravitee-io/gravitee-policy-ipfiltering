@@ -29,6 +29,13 @@ The blacklist takes precedence, so if an IP address is included in both lists, t
 
 You can specify a host to be resolved and checked against the remote IP.
 
+== Compatibility with APIM
+
+|===
+| Plugin version | APIM version
+| 1.x            | All supported versions
+|===
+
 == Configuration
 You can configure the policy with the following options:
 
