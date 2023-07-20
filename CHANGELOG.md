@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.10.0...1.10.1) (2023-07-20)
+
+
+### Bug Fixes
+
+* update policy description ([8ce59e3](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/8ce59e3b3a50c9bc30d2a80864412232c9cd8183))
+
 # [1.10.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.9.0...1.10.0) (2023-07-05)
 
 
