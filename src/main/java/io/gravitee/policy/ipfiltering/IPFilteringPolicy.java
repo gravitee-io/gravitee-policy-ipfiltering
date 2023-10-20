@@ -28,13 +28,10 @@ import io.gravitee.policy.api.annotations.OnRequest;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.dns.DnsClient;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.slf4j.Logger;
@@ -49,13 +46,7 @@ public class IPFilteringPolicy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IPFilteringPolicy.class);
 
-    /**
-     * The associated configuration to this IPFiltering Policy
-     */
     private final IPFilteringPolicyConfiguration configuration;
-
-    // DNS client is created lazily and only if required
-    private static DnsClient dnsClient;
 
     /**
      * Create a new IPFiltering Policy instance based on its associated configuration
@@ -81,25 +72,26 @@ public class IPFilteringPolicy {
             }
 
             if (!filteredHosts.isEmpty()) {
-                DnsClient dnsClient = getDnsClient(executionContext);
                 filteredHosts.forEach(host -> {
                     final Promise<Void> promise = Promise.promise();
                     futures.add(promise.future());
-                    dnsClient.lookup(
-                        host,
-                        event -> {
-                            if (event.succeeded()) {
-                                if (executionContext.request().remoteAddress().equals(event.result())) {
-                                    promise.fail("");
+                    LazyDnsClient
+                        .get(executionContext)
+                        .lookup(
+                            host,
+                            event -> {
+                                if (event.succeeded()) {
+                                    if (executionContext.request().remoteAddress().equals(event.result())) {
+                                        promise.fail("");
+                                    } else {
+                                        promise.complete();
+                                    }
                                 } else {
+                                    LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
                                     promise.complete();
                                 }
-                            } else {
-                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
-                                promise.complete();
                             }
-                        }
-                    );
+                        );
                 });
             }
         }
@@ -114,25 +106,26 @@ public class IPFilteringPolicy {
             }
 
             if (!filteredHosts.isEmpty()) {
-                DnsClient dnsClient = getDnsClient(executionContext);
                 filteredHosts.forEach(host -> {
                     final Promise<Void> promise = Promise.promise();
                     futures.add(promise.future());
-                    dnsClient.lookup(
-                        host,
-                        event -> {
-                            if (event.succeeded()) {
-                                if (!executionContext.request().remoteAddress().equals(event.result())) {
-                                    promise.fail("");
+                    LazyDnsClient
+                        .get(executionContext)
+                        .lookup(
+                            host,
+                            event -> {
+                                if (event.succeeded()) {
+                                    if (!executionContext.request().remoteAddress().equals(event.result())) {
+                                        promise.fail("");
+                                    } else {
+                                        promise.complete();
+                                    }
                                 } else {
+                                    LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
                                     promise.complete();
                                 }
-                            } else {
-                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
-                                promise.complete();
                             }
-                        }
-                    );
+                        );
                 });
             }
         }
@@ -209,13 +202,5 @@ public class IPFilteringPolicy {
                     }
                 })
         );
-    }
-
-    private DnsClient getDnsClient(ExecutionContext context) {
-        if (dnsClient == null) {
-            dnsClient = context.getComponent(Vertx.class).createDnsClient();
-        }
-
-        return dnsClient;
     }
 }
