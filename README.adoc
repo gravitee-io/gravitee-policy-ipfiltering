@@ -73,13 +73,14 @@ At the policy level, you can configure the following options:
 
 At the gateway level, you can configure the DNS server used to perform DNS Lookup for a given name (when using domain name instead of IP).Example:
 
-```yaml
+[source,yaml]
+----
 policy:
   ip-filtering:
     dns:
       host: 8.8.8.8
       port: 53
-```
+----
 
 == Examples
 
