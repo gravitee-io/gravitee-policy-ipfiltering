@@ -17,6 +17,7 @@ package io.gravitee.policy.ipfiltering;
 
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
@@ -49,7 +50,7 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
     }
 
     public void setWhitelistIps(List<String> whitelistIps) {
-        this.whitelistIps = whitelistIps;
+        this.whitelistIps = whitelistIps == null ? List.of() : whitelistIps.stream().map(String::trim).collect(Collectors.toList());
     }
 
     public List<String> getBlacklistIps() {
@@ -57,6 +58,6 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
     }
 
     public void setBlacklistIps(List<String> blacklistIps) {
-        this.blacklistIps = blacklistIps;
+        this.blacklistIps = blacklistIps == null ? List.of() : blacklistIps.stream().map(String::trim).collect(Collectors.toList());
     }
 }
