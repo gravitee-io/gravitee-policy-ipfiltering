@@ -29,6 +29,8 @@ The blacklist takes precedence, so if an IP address is included in both lists, t
 
 You can specify a host to be resolved and checked against the remote IP.
 
+NOTE: When using domain name, the Gateway is performing DNS Lookup with the DNS server configured on the host by default. If you want to use a specific DNS server, you can configure it at the policy level. See <<_gateway>> for more information.
+
 == Compatibility with APIM
 
 |===
@@ -39,12 +41,16 @@ You can specify a host to be resolved and checked against the remote IP.
 == Configuration
 You can configure the policy with the following options:
 
+=== Policy
+
+At the policy level, you can configure the following options:
+
 |===
 |Property |Required |Description |Type |Default
 
 |matchAllFromXForwardedFor
 |No
-|If set to `true`, each IP from the `X-Forwarded-For` header parameter is parsed
+|If set to `true`, the `X-Forwarded-For` header is parsed to extract all IP addresses and check them against the whitelist or blacklist.
 |boolean
 |`false`
 
@@ -61,6 +67,19 @@ You can configure the policy with the following options:
 |`empty`
 
 |===
+
+[#_gateway]
+=== Gateway
+
+At the gateway level, you can configure the DNS server used to perform DNS Lookup for a given name (when using domain name instead of IP).Example:
+
+```yaml
+policy:
+  ip-filtering:
+    dns:
+      host: 8.8.8.8
+      port: 53
+```
 
 == Examples
 
