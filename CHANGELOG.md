@@ -1,3 +1,15 @@
+# [1.11.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.10.1...1.11.0) (2023-10-23)
+
+
+### Bug Fixes
+
+* trim IPs set in configuration ([a8fc3e1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/a8fc3e189e8d72323fd5374764623a53657468a5))
+
+
+### Features
+
+* add configuration to set custom DNS server ([688d2db](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/688d2db90ea2fca657a29747b61f0f4330e477a7))
+
 ## [1.10.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.10.0...1.10.1) (2023-07-20)
 
 
