@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.11.0...1.12.0) (2023-12-19)
+
+
+### Features
+
+* enable policy on REQUEST phase for message APIs ([169980d](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/169980d022c1ade4fcdd202d2f335e0be621fc6f)), closes [gravitee-io/issues#9430](https://github.com/gravitee-io/issues/issues/9430)
+
 # [1.11.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.10.1...1.11.0) (2023-10-23)
 
 
