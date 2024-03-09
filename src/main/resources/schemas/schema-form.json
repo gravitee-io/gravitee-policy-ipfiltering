@@ -35,6 +35,11 @@
         "ALL"
       ],
       "default": "ALL"
+    },
+    "isInclusiveHostCount": {
+        "title": "Inclusive Host Count",
+        "description": "If true, include the network and broadcast addresses (useful for CIDR/31 and CIDR/32).",
+        "type": "boolean"
     }
   }
 }
