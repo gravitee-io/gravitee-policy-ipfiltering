@@ -42,6 +42,8 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
      */
     private LookupIpVersion lookupIpVersion;
 
+    private boolean isInclusiveHostCount = false;
+
     public boolean isMatchAllFromXForwardedFor() {
         return matchAllFromXForwardedFor;
     }
@@ -72,5 +74,13 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
 
     public void setLookupIpVersion(LookupIpVersion lookupIpVersion) {
         this.lookupIpVersion = lookupIpVersion;
+    }
+
+    public void setInclusiveHostCount(boolean inclusiveHostCount) {
+        isInclusiveHostCount = inclusiveHostCount;
+    }
+
+    public boolean isInclusiveHostCount() {
+        return isInclusiveHostCount;
     }
 }
