@@ -24,6 +24,17 @@
         "type" : "string",
         "minLength": 1
       }
+    },
+    "lookupIpVersion" : {
+      "title" : "Lookup IP version to use (default is ALL)",
+      "description": "If you're not sure your DNS server can handle multi-question requests (both V4 and V6) specify a version",
+      "type" : "string",
+      "enum": [
+        "IPV4",
+        "IPV6",
+        "ALL"
+      ],
+      "default": "ALL"
     }
   }
 }

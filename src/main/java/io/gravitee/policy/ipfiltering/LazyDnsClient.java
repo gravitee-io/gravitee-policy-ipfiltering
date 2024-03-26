@@ -17,6 +17,9 @@ package io.gravitee.policy.ipfiltering;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
+import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.dns.DnsClient;
 
@@ -37,9 +40,31 @@ public class LazyDnsClient {
     public static DnsClient get(ExecutionContext context) {
         if (dnsClient == null) {
             DnsConfiguration dnsConfiguration = new DnsConfiguration(context.getComponent(Configuration.class));
+            dnsConfiguration.getDnsClientOptions().setRecursionDesired(true);
             dnsClient = context.getComponent(Vertx.class).createDnsClient(dnsConfiguration.getDnsClientOptions());
         }
 
         return dnsClient;
+    }
+
+    public static void lookup(
+        ExecutionContext executionContext,
+        LookupIpVersion lookupIpVersion,
+        String host,
+        Handler<AsyncResult<@Nullable String>> handler
+    ) {
+        DnsClient client = get(executionContext);
+        switch (lookupIpVersion) {
+            case IPV6:
+                client.lookup6(host, handler);
+                break;
+            case IPV4:
+                client.lookup4(host, handler);
+                break;
+            case ALL:
+            default:
+                client.lookup(host, handler);
+                break;
+        }
     }
 }

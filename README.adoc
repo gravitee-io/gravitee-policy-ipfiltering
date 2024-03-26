@@ -66,6 +66,13 @@ At the policy level, you can configure the following options:
 |string list
 |`empty`
 
+|lookupIpVersion
+|No
+|IP version to use to lookup host name. If you're not sure your DNS server can handle multi-question requests (both V4 and V6) specify a version.
+|enum [`IPV4`, `IPV6`, `ALL`]
+|`ALL`
+
+
 |===
 
 [#_gateway]
@@ -95,7 +102,8 @@ policy:
   ],
   "blacklistIps": [
     null
-  ]
+  ],
+  "lookupIpVersion": "IPV4"
 }
 ----
 

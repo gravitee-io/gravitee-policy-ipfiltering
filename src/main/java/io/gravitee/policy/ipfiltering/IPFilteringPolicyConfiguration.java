@@ -37,6 +37,11 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
      */
     private List<String> blacklistIps;
 
+    /**
+     * The IP Version supported to make the lookup
+     */
+    private LookupIpVersion lookupIpVersion;
+
     public boolean isMatchAllFromXForwardedFor() {
         return matchAllFromXForwardedFor;
     }
@@ -59,5 +64,13 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
 
     public void setBlacklistIps(List<String> blacklistIps) {
         this.blacklistIps = blacklistIps == null ? List.of() : blacklistIps.stream().map(String::trim).collect(Collectors.toList());
+    }
+
+    public LookupIpVersion getLookupIpVersion() {
+        return lookupIpVersion == null ? LookupIpVersion.ALL : lookupIpVersion;
+    }
+
+    public void setLookupIpVersion(LookupIpVersion lookupIpVersion) {
+        this.lookupIpVersion = lookupIpVersion;
     }
 }
