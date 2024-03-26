@@ -75,23 +75,23 @@ public class IPFilteringPolicy {
                 filteredHosts.forEach(host -> {
                     final Promise<Void> promise = Promise.promise();
                     futures.add(promise.future());
-                    LazyDnsClient
-                        .get(executionContext)
-                        .lookup(
-                            host,
-                            event -> {
-                                if (event.succeeded()) {
-                                    if (executionContext.request().remoteAddress().equals(event.result())) {
-                                        promise.fail("");
-                                    } else {
-                                        promise.complete();
-                                    }
+                    LazyDnsClient.lookup(
+                        executionContext,
+                        configuration.getLookupIpVersion(),
+                        host,
+                        event -> {
+                            if (event.succeeded()) {
+                                if (executionContext.request().remoteAddress().equals(event.result())) {
+                                    promise.fail("");
                                 } else {
-                                    LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
                                     promise.complete();
                                 }
+                            } else {
+                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
+                                promise.complete();
                             }
-                        );
+                        }
+                    );
                 });
             }
         }
@@ -109,23 +109,23 @@ public class IPFilteringPolicy {
                 filteredHosts.forEach(host -> {
                     final Promise<Void> promise = Promise.promise();
                     futures.add(promise.future());
-                    LazyDnsClient
-                        .get(executionContext)
-                        .lookup(
-                            host,
-                            event -> {
-                                if (event.succeeded()) {
-                                    if (!executionContext.request().remoteAddress().equals(event.result())) {
-                                        promise.fail("");
-                                    } else {
-                                        promise.complete();
-                                    }
+                    LazyDnsClient.lookup(
+                        executionContext,
+                        configuration.getLookupIpVersion(),
+                        host,
+                        event -> {
+                            if (event.succeeded()) {
+                                if (!executionContext.request().remoteAddress().equals(event.result())) {
+                                    promise.fail("");
                                 } else {
-                                    LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
                                     promise.complete();
                                 }
+                            } else {
+                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
+                                promise.complete();
                             }
-                        );
+                        }
+                    );
                 });
             }
         }
