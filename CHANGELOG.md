@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.12.0...1.13.0) (2024-03-27)
+
+
+### Features
+
+* add the possibility to configure the IP version when lookup for host ([ee6611b](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/ee6611bd800513072e1d29a2ad4e77e866b5c60b))
+
 # [1.12.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.11.0...1.12.0) (2023-12-19)
 
 
