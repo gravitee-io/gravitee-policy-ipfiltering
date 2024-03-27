@@ -196,6 +196,7 @@ public class IPFilteringPolicy {
                     }
                     try {
                         SubnetUtils utils = new SubnetUtils(filterIp);
+                        utils.setInclusiveHostCount(true);
                         return utils.getInfo().isInRange(ip);
                     } catch (IllegalArgumentException iae) {
                         return false;
