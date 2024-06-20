@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.13.0...1.14.0) (2024-06-20)
+
+
+### Features
+
+* add InclusiveHostCount option for /31 and /32 CIDR block issue ([784691b](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/784691bbc396345c1f703ebfdabfed54a3794ba7))
+
 # [1.13.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.12.0...1.13.0) (2024-03-27)
 
 
