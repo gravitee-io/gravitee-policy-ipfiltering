@@ -1,11 +1,11 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,8 +18,11 @@ package io.gravitee.policy.ipfiltering;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.Setter;
 
-@SuppressWarnings("unused")
+@Getter
+@Setter
 public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
 
     /**
@@ -43,44 +46,4 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
     private LookupIpVersion lookupIpVersion;
 
     private boolean isInclusiveHostCount = false;
-
-    public boolean isMatchAllFromXForwardedFor() {
-        return matchAllFromXForwardedFor;
-    }
-
-    public void setMatchAllFromXForwardedFor(boolean matchAllFromXForwardedFor) {
-        this.matchAllFromXForwardedFor = matchAllFromXForwardedFor;
-    }
-
-    public List<String> getWhitelistIps() {
-        return whitelistIps;
-    }
-
-    public void setWhitelistIps(List<String> whitelistIps) {
-        this.whitelistIps = whitelistIps == null ? List.of() : whitelistIps.stream().map(String::trim).collect(Collectors.toList());
-    }
-
-    public List<String> getBlacklistIps() {
-        return blacklistIps;
-    }
-
-    public void setBlacklistIps(List<String> blacklistIps) {
-        this.blacklistIps = blacklistIps == null ? List.of() : blacklistIps.stream().map(String::trim).collect(Collectors.toList());
-    }
-
-    public LookupIpVersion getLookupIpVersion() {
-        return lookupIpVersion == null ? LookupIpVersion.ALL : lookupIpVersion;
-    }
-
-    public void setLookupIpVersion(LookupIpVersion lookupIpVersion) {
-        this.lookupIpVersion = lookupIpVersion;
-    }
-
-    public void setInclusiveHostCount(boolean inclusiveHostCount) {
-        isInclusiveHostCount = inclusiveHostCount;
-    }
-
-    public boolean isInclusiveHostCount() {
-        return isInclusiveHostCount;
-    }
 }

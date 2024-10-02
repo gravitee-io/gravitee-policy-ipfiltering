@@ -1,11 +1,11 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.slf4j.Logger;
@@ -42,9 +43,8 @@ import org.slf4j.LoggerFactory;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class IPFilteringPolicy {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(IPFilteringPolicy.class);
 
     private final IPFilteringPolicyConfiguration configuration;
 
@@ -87,7 +87,7 @@ public class IPFilteringPolicy {
                                     promise.complete();
                                 }
                             } else {
-                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
+                                log.error("Cannot resolve host: '" + host + "'", event.cause());
                                 promise.complete();
                             }
                         }
@@ -121,7 +121,7 @@ public class IPFilteringPolicy {
                                     promise.complete();
                                 }
                             } else {
-                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
+                                log.error("Cannot resolve host: '" + host + "'", event.cause());
                                 promise.complete();
                             }
                         }

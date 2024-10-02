@@ -1,11 +1,11 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.dns.DnsClient;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * LazyDnsClient is an abstract class that provides a lazy initialization of a DNS client. The DNS client is only created when required.
@@ -31,13 +33,12 @@ import io.vertx.core.dns.DnsClient;
  * @see DnsClient
  * @see ExecutionContext
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LazyDnsClient {
-
-    private LazyDnsClient() {}
 
     private static DnsClient dnsClient;
 
-    public static DnsClient get(ExecutionContext context) {
+    public static DnsClient get(final ExecutionContext context) {
         if (dnsClient == null) {
             DnsConfiguration dnsConfiguration = new DnsConfiguration(context.getComponent(Configuration.class));
             dnsConfiguration.getDnsClientOptions().setRecursionDesired(true);
@@ -55,16 +56,9 @@ public class LazyDnsClient {
     ) {
         DnsClient client = get(executionContext);
         switch (lookupIpVersion) {
-            case IPV6:
-                client.lookup6(host, handler);
-                break;
-            case IPV4:
-                client.lookup4(host, handler);
-                break;
-            case ALL:
-            default:
-                client.lookup(host, handler);
-                break;
+            case IPV6 -> client.lookup6(host, handler);
+            case IPV4 -> client.lookup4(host, handler);
+            default -> client.lookup(host, handler);
         }
     }
 }
