@@ -1,11 +1,11 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,13 +29,20 @@ import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class IPFilteringPolicyTest {
 
     @Mock
@@ -50,148 +57,49 @@ public class IPFilteringPolicyTest {
     @Mock
     PolicyChain mockPolicychain;
 
-    @Mock
-    IPFilteringPolicyConfiguration mockConfiguration;
+    IPFilteringPolicyConfiguration filteringPolicyConfiguration;
 
-    @Before
-    public void init() {
-        initMocks(this);
-        when(executionContext.request()).thenReturn(mockRequest);
-        when(executionContext.response()).thenReturn(mockResponse);
+    @BeforeEach
+    public void beforeEach() {
+        filteringPolicyConfiguration = new IPFilteringPolicyConfiguration();
+        lenient().when(executionContext.request()).thenReturn(mockRequest);
+        lenient().when(executionContext.response()).thenReturn(mockResponse);
     }
 
     @Test
-    public void shouldNotTestXFF() throws Exception {
-        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(false);
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+    public void should_not_test_XFF_header() {
+        filteringPolicyConfiguration.setMatchAllFromXForwardedFor(false);
+        filteringPolicyConfiguration.setWhitelistIps(List.of("127.0.0.1"));
+        when(mockRequest.remoteAddress()).thenReturn("127.0.0.1");
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
 
         policy.onRequest(executionContext, mockPolicychain);
 
-        verify(mockConfiguration, times(1)).isMatchAllFromXForwardedFor();
         verify(mockRequest, never()).headers();
-    }
-
-    @Test
-    public void shouldTestXFF() throws Exception {
-        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        when(mockRequest.headers()).thenReturn(HttpHeaders.create());
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
-
-        policy.onRequest(executionContext, mockPolicychain);
-
-        verify(mockConfiguration, times(1)).isMatchAllFromXForwardedFor();
-        verify(mockRequest, atLeastOnce()).headers();
-    }
-
-    @Test
-    public void shouldFailCausedIpInBlacklist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
-
-        policy.onRequest(executionContext, mockPolicychain);
-
-        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
-        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
-    }
-
-    @Test
-    public void shouldFailCausedIpNotInWhitelist() {
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
-
-        policy.onRequest(executionContext, mockPolicychain);
-
-        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
-        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
-    }
-
-    @Test
-    public void shouldFailCausedIpInBlacklistAndWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
-
-        policy.onRequest(executionContext, mockPolicychain);
-
-        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
-        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
-    }
-
-    @Test
-    public void shouldFailCausedIpInBlacklistAndNotInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
-
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
-
-        policy.onRequest(executionContext, mockPolicychain);
-
-        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
-        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
-    }
-
-    @Test
-    public void shouldFailCausedIpNotInBlacklistAndNotInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
-        when(mockRequest.remoteAddress()).thenReturn("192.168.0.7");
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
-
-        policy.onRequest(executionContext, mockPolicychain);
-
-        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
-        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
-    }
-
-    @Test
-    public void shouldSucceedCausedIpNotInBlacklistAndNothingInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
-
-        policy.onRequest(executionContext, mockPolicychain);
-
         verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
-        verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
+        verify(mockPolicychain).doNext(any(), any());
     }
 
     @Test
-    public void shouldSucceedCausedIpNotInBlacklistAndInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
-        when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
-
-        policy.onRequest(executionContext, mockPolicychain);
-
-        verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
-        verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
-    }
-
-    @Test
-    public void shouldSucceedCausedIpsNotInBlacklistAndInWhitelist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
-        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
+    public void should_test_XFF() {
+        filteringPolicyConfiguration.setMatchAllFromXForwardedFor(true);
+        filteringPolicyConfiguration.setWhitelistIps(List.of("10.0.0.1"));
         HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
 
         policy.onRequest(executionContext, mockPolicychain);
 
+        verify(mockRequest, atLeastOnce()).headers();
         verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
-        verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
+        verify(mockPolicychain).doNext(any(), any());
     }
 
     @Test
-    public void shouldFailedCausedIpsInBlacklist() {
-        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
-        when(mockRequest.headers()).thenReturn(httpHeaders);
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+    public void should_fail_caused_ip_in_blacklist() {
+        filteringPolicyConfiguration.setBlacklistIps(List.of("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
 
         policy.onRequest(executionContext, mockPolicychain);
 
@@ -200,15 +108,120 @@ public class IPFilteringPolicyTest {
     }
 
     @Test
-    public void shouldSucceedWithNullValue() {
-        ArrayList<String> ips = new ArrayList<>();
-        ips.add(null);
+    public void should_fail_caused_ip_not_in_whitelist() {
+        filteringPolicyConfiguration.setWhitelistIps(List.of("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
 
-        when(mockConfiguration.getBlacklistIps()).thenReturn(ips);
-        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void should_fail_caused_ip_in_blacklist_and_whitelist() {
+        filteringPolicyConfiguration.setBlacklistIps(List.of("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        filteringPolicyConfiguration.setWhitelistIps(List.of("192.168.0.1"));
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void should_fail_caused_ip_in_blacklist_and_not_in_whitelist() {
+        filteringPolicyConfiguration.setBlacklistIps(List.of("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        filteringPolicyConfiguration.setWhitelistIps(List.of("192.168.0.4", "192.168.0.5", "192.168.0.6"));
+
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void should_Fail_Caused_Ip_Not_In_Blacklist_And_Not_In_Whitelist() {
+        filteringPolicyConfiguration.setBlacklistIps(List.of("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        filteringPolicyConfiguration.setWhitelistIps(List.of("192.168.0.4", "192.168.0.5", "192.168.0.6"));
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.7");
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void should_succeed_caused_ip_not_in_blacklist_and_nothing_in_whitelist() {
+        filteringPolicyConfiguration.setBlacklistIps(List.of("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void should_succeed_caused_ip_not_in_blacklist_and_in_whitelist() {
+        filteringPolicyConfiguration.setBlacklistIps(List.of("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        filteringPolicyConfiguration.setWhitelistIps(List.of("192.168.0.4", "192.168.0.5", "192.168.0.6"));
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void should_succeed_caused_ips_not_in_blacklist_and_in_whitelist() {
+        filteringPolicyConfiguration.setBlacklistIps(List.of("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        filteringPolicyConfiguration.setWhitelistIps(List.of("192.168.0.4", "192.168.0.5", "192.168.0.6"));
+        filteringPolicyConfiguration.setMatchAllFromXForwardedFor(true);
+        HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
+        when(mockRequest.headers()).thenReturn(httpHeaders);
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void should_failed_caused_ips_i_nblacklist() {
+        filteringPolicyConfiguration.setBlacklistIps(List.of("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        filteringPolicyConfiguration.setMatchAllFromXForwardedFor(true);
         HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
-        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void should_succeed_with_null_value() {
+        List<String> ips = new ArrayList<>();
+        ips.add(null);
+        filteringPolicyConfiguration.setBlacklistIps(ips);
+        filteringPolicyConfiguration.setMatchAllFromXForwardedFor(true);
+        HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
+        when(mockRequest.headers()).thenReturn(httpHeaders);
+        IPFilteringPolicy policy = new IPFilteringPolicy(filteringPolicyConfiguration);
 
         policy.onRequest(executionContext, mockPolicychain);
 
