@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.14.0...1.14.1) (2024-10-22)
+
+
+### Bug Fixes
+
+* error message with correct ip ([fc505e8](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/fc505e8c7a3b4c4c0348edfc8bdca0373b72629b))
+
 # [1.14.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.13.0...1.14.0) (2024-06-20)
 
 
