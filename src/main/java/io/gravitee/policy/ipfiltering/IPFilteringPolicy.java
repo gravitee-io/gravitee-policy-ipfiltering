@@ -28,10 +28,8 @@ import io.gravitee.policy.api.annotations.OnRequest;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.slf4j.Logger;
@@ -66,8 +64,9 @@ public class IPFilteringPolicy {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(configuration.getBlacklistIps(), filteredIps, filteredHosts);
-            if (!filteredIps.isEmpty() && ips.stream().anyMatch(ip -> isFiltered(ip, filteredIps))) {
-                fail(policyChain, executionContext.request().remoteAddress());
+            Optional<String> matchingIp = ips.stream().filter(ip -> isFiltered(ip, filteredIps)).findFirst();
+            if (!filteredIps.isEmpty() && matchingIp.isPresent()) {
+                fail(policyChain, matchingIp.get());
                 return;
             }
 
@@ -87,7 +86,7 @@ public class IPFilteringPolicy {
                                     promise.complete();
                                 }
                             } else {
-                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
+                                LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
                                 promise.complete();
                             }
                         }
@@ -100,8 +99,10 @@ public class IPFilteringPolicy {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(configuration.getWhitelistIps(), filteredIps, filteredHosts);
-            if (!filteredIps.isEmpty() && ips.stream().noneMatch(ip -> isFiltered(ip, filteredIps))) {
-                fail(policyChain, executionContext.request().remoteAddress());
+            List<String> nonWhitelistedIps = ips.stream().filter(ip -> !isFiltered(ip, filteredIps)).collect(Collectors.toList());
+
+            if (!filteredIps.isEmpty() && nonWhitelistedIps.size() == ips.size()) {
+                fail(policyChain, String.join(", ", nonWhitelistedIps));
                 return;
             }
 
@@ -121,7 +122,7 @@ public class IPFilteringPolicy {
                                     promise.complete();
                                 }
                             } else {
-                                LOGGER.error("Cannot resolve host: '" + host + "'", event.cause());
+                                LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
                                 promise.complete();
                             }
                         }

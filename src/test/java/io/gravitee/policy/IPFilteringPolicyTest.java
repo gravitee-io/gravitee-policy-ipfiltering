@@ -15,9 +15,11 @@
  */
 package io.gravitee.policy;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -214,5 +217,46 @@ public class IPFilteringPolicyTest {
 
         verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
         verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void shouldFailedCausedIpsInBlacklistAndReturnCorrectIP() {
+        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
+        HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
+        when(mockRequest.headers()).thenReturn(httpHeaders);
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        ArgumentCaptor<PolicyResult> policyResultCaptor = ArgumentCaptor.forClass(PolicyResult.class);
+        verify(mockPolicychain, times(1)).failWith(policyResultCaptor.capture());
+        PolicyResult policyResult = policyResultCaptor.getValue();
+        assertEquals(
+            "Your IP (192.168.0.2) or some proxies whereby your request pass through are not allowed to reach this resource.",
+            policyResult.message()
+        );
+        assertEquals(HttpStatusCode.FORBIDDEN_403, policyResult.httpStatusCode());
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void shouldFailedCausedIpsNotInWhitelistAndReturnCorrectIP() {
+        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
+        HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, unknown");
+        when(mockRequest.headers()).thenReturn(httpHeaders);
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        ArgumentCaptor<PolicyResult> policyResultCaptor = ArgumentCaptor.forClass(PolicyResult.class);
+        verify(mockPolicychain, times(1)).failWith(policyResultCaptor.capture());
+        PolicyResult policyResult = policyResultCaptor.getValue();
+        assertEquals(
+            "Your IP (localhost, 10.0.0.1, unknown) or some proxies whereby your request pass through are not allowed to reach this resource.",
+            policyResult.message()
+        );
+        assertEquals(HttpStatusCode.FORBIDDEN_403, policyResult.httpStatusCode());
     }
 }
