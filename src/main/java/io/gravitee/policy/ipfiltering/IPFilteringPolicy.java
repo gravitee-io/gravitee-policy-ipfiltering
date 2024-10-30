@@ -60,10 +60,13 @@ public class IPFilteringPolicy {
         final List<String> ips = extractIps(executionContext.request());
         final List<Future> futures = new ArrayList<>();
 
-        if (configuration.getBlacklistIps() != null && !configuration.getBlacklistIps().isEmpty()) {
+        var blackList = computeList(executionContext, configuration.getBlacklistIps());
+        var whiteList = computeList(executionContext, configuration.getWhitelistIps());
+
+        if (!blackList.isEmpty()) {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
-            processFilteredLists(configuration.getBlacklistIps(), filteredIps, filteredHosts);
+            processFilteredLists(blackList, filteredIps, filteredHosts);
             Optional<String> matchingIp = ips.stream().filter(ip -> isFiltered(ip, filteredIps)).findFirst();
             if (!filteredIps.isEmpty() && matchingIp.isPresent()) {
                 fail(policyChain, matchingIp.get());
@@ -95,10 +98,10 @@ public class IPFilteringPolicy {
             }
         }
 
-        if (configuration.getWhitelistIps() != null && !configuration.getWhitelistIps().isEmpty()) {
+        if (!whiteList.isEmpty()) {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
-            processFilteredLists(configuration.getWhitelistIps(), filteredIps, filteredHosts);
+            processFilteredLists(whiteList, filteredIps, filteredHosts);
             List<String> nonWhitelistedIps = ips.stream().filter(ip -> !isFiltered(ip, filteredIps)).collect(Collectors.toList());
 
             if (!filteredIps.isEmpty() && nonWhitelistedIps.size() == ips.size()) {
@@ -141,7 +144,7 @@ public class IPFilteringPolicy {
         }
     }
 
-    private void processFilteredLists(final List<String> filteredList, final List<String> filteredIps, final List<String> filteredHosts) {
+    private void processFilteredLists(final Set<String> filteredList, final List<String> filteredIps, final List<String> filteredHosts) {
         filteredList
             .stream()
             .filter(Objects::nonNull)
@@ -206,5 +209,13 @@ public class IPFilteringPolicy {
                     }
                 })
         );
+    }
+
+    @SuppressWarnings({ "removal" })
+    private static Set<String> computeList(ExecutionContext ctx, List<String> givenList) {
+        if (givenList == null) {
+            return Set.of();
+        }
+        return givenList.stream().map(given -> ctx.getTemplateEngine().getValue(given, String.class)).collect(Collectors.toSet());
     }
 }
