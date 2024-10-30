@@ -20,6 +20,8 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.el.TemplateContext;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -29,8 +31,10 @@ import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
 import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
+import io.reactivex.Maybe;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +42,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+@SuppressWarnings("removal")
 @RunWith(MockitoJUnitRunner.class)
 public class IPFilteringPolicyTest {
 
@@ -56,11 +61,50 @@ public class IPFilteringPolicyTest {
     @Mock
     IPFilteringPolicyConfiguration mockConfiguration;
 
+    private final TemplateEngine templateEngine = new TemplateEngine() {
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> T getValue(String expression, Class<T> clazz) {
+            if ("{#api.properties['allowed_ip']".equals(expression)) {
+                return (T) "192.168.0.1";
+            }
+            if ("{#api.properties['forbidden_ip']}".equals(expression)) {
+                return (T) "192.168.0.2";
+            }
+            return (T) expression;
+        }
+
+        @Override
+        public <T> Maybe<T> eval(String expression, Class<T> clazz) {
+            return null;
+        }
+
+        @Override
+        public TemplateContext getTemplateContext() {
+            return null;
+        }
+    };
+
     @Before
     public void init() {
         initMocks(this);
+        when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(executionContext.request()).thenReturn(mockRequest);
         when(executionContext.response()).thenReturn(mockResponse);
+    }
+
+    @Test
+    public void shouldResolveTemplates() {
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of("{#api.properties['allowed_ip']"));
+        when(mockConfiguration.getBlacklistIps()).thenReturn(List.of("{#api.properties['forbidden_ip']}"));
+
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.1");
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, never()).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, times(1)).doNext(any(Request.class), any(Response.class));
     }
 
     @Test
