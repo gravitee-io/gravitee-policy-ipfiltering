@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.14.1...1.15.0) (2024-10-31)
+
+
+### Features
+
+* support expression language in ip lists ([2257e35](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/2257e3533b1dd7421d2dc6ad17c68e1c16bd14b6))
+
 ## [1.14.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.14.0...1.14.1) (2024-10-22)
 
 
