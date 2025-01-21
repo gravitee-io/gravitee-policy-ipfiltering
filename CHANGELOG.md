@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.15.0...1.16.0) (2025-01-21)
+
+
+### Features
+
+* extract ip address from header ([63c8959](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/63c8959ad4088b5dc9a4b5c11dc2db0b0065c4cd))
+
 # [1.15.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.14.1...1.15.0) (2024-10-31)
 
 
