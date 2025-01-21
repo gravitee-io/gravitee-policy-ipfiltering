@@ -109,24 +109,24 @@ public class IPFilteringPolicyTest {
 
     @Test
     public void shouldNotTestXFF() throws Exception {
-        when(mockConfiguration.isGetSourceIPAddressFromHeader()).thenReturn(false);
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(false);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
         policy.onRequest(executionContext, mockPolicychain);
 
-        verify(mockConfiguration, times(1)).isGetSourceIPAddressFromHeader();
+        verify(mockConfiguration, times(1)).isMatchAllFromXForwardedFor();
         verify(mockRequest, never()).headers();
     }
 
     @Test
     public void shouldTestXFF() throws Exception {
-        when(mockConfiguration.isGetSourceIPAddressFromHeader()).thenReturn(true);
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         when(mockRequest.headers()).thenReturn(HttpHeaders.create());
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
         policy.onRequest(executionContext, mockPolicychain);
 
-        verify(mockConfiguration, times(1)).isGetSourceIPAddressFromHeader();
+        verify(mockConfiguration, times(1)).isMatchAllFromXForwardedFor();
         verify(mockRequest, atLeastOnce()).headers();
     }
 
@@ -221,8 +221,7 @@ public class IPFilteringPolicyTest {
     public void shouldSucceedCausedIpsNotInBlacklistAndInWhitelist() {
         when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
         when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
-        when(mockConfiguration.isGetSourceIPAddressFromHeader()).thenReturn(true);
-        when(mockConfiguration.getSourceIPHeaderName()).thenReturn(HttpHeaderNames.X_FORWARDED_FOR);
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -236,8 +235,7 @@ public class IPFilteringPolicyTest {
     @Test
     public void shouldFailedCausedIpsInBlacklist() {
         when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.isGetSourceIPAddressFromHeader()).thenReturn(true);
-        when(mockConfiguration.getSourceIPHeaderName()).thenReturn(HttpHeaderNames.X_FORWARDED_FOR);
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -254,7 +252,7 @@ public class IPFilteringPolicyTest {
         ips.add(null);
 
         when(mockConfiguration.getBlacklistIps()).thenReturn(ips);
-        when(mockConfiguration.isGetSourceIPAddressFromHeader()).thenReturn(true);
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -268,8 +266,7 @@ public class IPFilteringPolicyTest {
     @Test
     public void shouldFailedCausedIpsInBlacklistAndReturnCorrectIP() {
         when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
-        when(mockConfiguration.isGetSourceIPAddressFromHeader()).thenReturn(true);
-        when(mockConfiguration.getSourceIPHeaderName()).thenReturn(HttpHeaderNames.X_FORWARDED_FOR);
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.2, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -290,8 +287,7 @@ public class IPFilteringPolicyTest {
     @Test
     public void shouldFailedCausedIpsNotInWhitelistAndReturnCorrectIP() {
         when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.4", "192.168.0.5", "192.168.0.6"));
-        when(mockConfiguration.isGetSourceIPAddressFromHeader()).thenReturn(true);
-        when(mockConfiguration.getSourceIPHeaderName()).thenReturn(HttpHeaderNames.X_FORWARDED_FOR);
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);

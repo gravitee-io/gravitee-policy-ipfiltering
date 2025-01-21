@@ -177,13 +177,12 @@ public class IPFilteringPolicy {
         List<String> ips;
 
         if (
-            configuration.isGetSourceIPAddressFromHeader() &&
+            configuration.isMatchAllFromXForwardedFor() &&
             request.headers() != null &&
-            request.headers().get(configuration.getSourceIPHeaderName()) != null &&
-            !request.headers().get(configuration.getSourceIPHeaderName()).isEmpty()
+            request.headers().get(HttpHeaderNames.X_FORWARDED_FOR) != null &&
+            !request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).isEmpty()
         ) {
-            ips =
-                Arrays.stream(request.headers().get(configuration.getSourceIPHeaderName()).split(",")).map(String::trim).collect(toList());
+            ips = Arrays.stream(request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).split(",")).map(String::trim).collect(toList());
         } else {
             ips = singletonList(request.remoteAddress());
         }
