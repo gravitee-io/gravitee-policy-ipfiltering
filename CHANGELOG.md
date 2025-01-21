@@ -1,3 +1,10 @@
+## [1.16.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.16.0...1.16.1) (2025-01-21)
+
+
+### Bug Fixes
+
+* revert changes ([eb6bb38](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/eb6bb38261448f1c0bdedda93d81ffe0b2b7d59e))
+
 # [1.16.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.15.0...1.16.0) (2025-01-21)
 
 
