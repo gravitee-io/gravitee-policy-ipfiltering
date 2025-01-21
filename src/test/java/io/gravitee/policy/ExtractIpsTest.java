@@ -47,7 +47,7 @@ public class ExtractIpsTest {
 
     @Test
     public void shouldReturnRemoteAddress() {
-        when(mockConfiguration.isGetSourceIPAddressFromHeader()).thenReturn(false);
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(false);
         when(mockRequest.remoteAddress()).thenReturn("127.0.0.1");
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
@@ -57,15 +57,13 @@ public class ExtractIpsTest {
         assertFalse(ips.isEmpty());
         assertEquals(1, ips.size());
         assertEquals("127.0.0.1", ips.get(0));
-        verify(mockConfiguration, times(1)).isGetSourceIPAddressFromHeader();
-        verify(mockConfiguration, times(0)).getSourceIPHeaderName();
+        verify(mockConfiguration, times(1)).isMatchAllFromXForwardedFor();
         verify(mockRequest, never()).headers();
     }
 
     @Test
     public void shouldReturnXFF() {
-        when(mockConfiguration.isGetSourceIPAddressFromHeader()).thenReturn(true);
-        when(mockConfiguration.getSourceIPHeaderName()).thenReturn("X-Forwarded-For");
+        when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         HttpHeaders httpHeaders = HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost, 10.0.0.1, 192.168.0.5, unknown");
         when(mockRequest.headers()).thenReturn(httpHeaders);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
@@ -77,7 +75,7 @@ public class ExtractIpsTest {
         assertEquals(4, ips.size());
         assertEquals("localhost", ips.get(0));
         assertFalse(ips.contains("127.0.0.1"));
-        verify(mockConfiguration, times(1)).isGetSourceIPAddressFromHeader();
+        verify(mockConfiguration, times(1)).isMatchAllFromXForwardedFor();
         verify(mockRequest, atLeastOnce()).headers();
         verify(mockRequest, never()).remoteAddress();
     }
