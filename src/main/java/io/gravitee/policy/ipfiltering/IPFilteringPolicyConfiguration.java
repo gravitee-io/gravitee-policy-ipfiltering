@@ -22,10 +22,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
 
-    /**
-     * true if X-Forwarded-For header param must be filtered, false otherwise
-     */
-    private boolean matchAllFromXForwardedFor = false;
+    private boolean getSourceIPAddressFromHeader = false;
 
     /**
      * The list of IP that are allowed to be call the api.
@@ -44,13 +41,7 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
 
     private boolean isInclusiveHostCount = false;
 
-    public boolean isMatchAllFromXForwardedFor() {
-        return matchAllFromXForwardedFor;
-    }
-
-    public void setMatchAllFromXForwardedFor(boolean matchAllFromXForwardedFor) {
-        this.matchAllFromXForwardedFor = matchAllFromXForwardedFor;
-    }
+    private String sourceIPHeaderName;
 
     public List<String> getWhitelistIps() {
         return whitelistIps;
@@ -82,5 +73,21 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
 
     public boolean isInclusiveHostCount() {
         return isInclusiveHostCount;
+    }
+
+    public boolean isGetSourceIPAddressFromHeader() {
+        return getSourceIPAddressFromHeader;
+    }
+
+    public void setGetSourceIPAddressFromHeader(boolean getSourceIPAddressFromHeader) {
+        this.getSourceIPAddressFromHeader = getSourceIPAddressFromHeader;
+    }
+
+    public String getSourceIPHeaderName() {
+        return sourceIPHeaderName;
+    }
+
+    public void setSourceIPHeaderName(String sourceIPHeaderName) {
+        this.sourceIPHeaderName = sourceIPHeaderName;
     }
 }

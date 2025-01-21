@@ -3,9 +3,32 @@
   "type": "object",
   "additionalProperties": false,
   "properties" : {
-    "matchAllFromXForwardedFor" : {
-      "title" : "Use X-Forwarded-For header",
-      "type" : "boolean"
+    "getSourceIPAddressFromHeader": {
+      "title": "Get Source IP Address from Header",
+      "description": "Use header to extract IP address",
+      "type": "boolean",
+      "default": false
+    },
+    "sourceIPHeaderName": {
+      "title": "Source IP Header Name",
+      "type": "string",
+      "default": "X-Forwarded-For",
+      "x-schema-form": {
+        "hidden": [
+          {
+            "$eq": {
+              "getSourceIPAddressFromHeader": false
+            }
+          }
+        ]
+      },
+      "gioConfig": {
+        "displayIf": {
+          "$eq": {
+            "value.getSourceIPAddressFromHeader": true
+          }
+        }
+      }
     },
     "whitelistIps" : {
       "title" : "IPs Whitelist (CIDR and hosts allowed)",
