@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.16.1...1.17.0) (2025-01-22)
+
+
+### Features
+
+* support custom header for IP address ([25b7a47](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/25b7a475c6bb61af1dbff5118f1faee0ccfa07a3))
+
 ## [1.16.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.16.0...1.16.1) (2025-01-21)
 
 
