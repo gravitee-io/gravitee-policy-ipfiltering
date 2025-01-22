@@ -57,7 +57,7 @@ public class IPFilteringPolicy {
 
     @OnRequest
     public void onRequest(ExecutionContext executionContext, PolicyChain policyChain) {
-        final List<String> ips = extractIps(executionContext.request());
+        final List<String> ips = extractIps(executionContext);
         final List<Future> futures = new ArrayList<>();
 
         var blackList = computeList(executionContext, configuration.getBlacklistIps());
@@ -173,17 +173,19 @@ public class IPFilteringPolicy {
         );
     }
 
-    public List<String> extractIps(Request request) {
+    public List<String> extractIps(ExecutionContext context) {
         List<String> ips;
+        Request request = context.request();
 
-        if (
-            configuration.isMatchAllFromXForwardedFor() &&
-            request.headers() != null &&
-            request.headers().get(HttpHeaderNames.X_FORWARDED_FOR) != null &&
-            !request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).isEmpty()
-        ) {
+        //use Custom IP Address from an EL or static value
+        if (configuration.isUseCustomIPAddress()) {
+            String customIPAddress = context.getTemplateEngine().getValue(configuration.getCustomIPAddress(), String.class);
+            ips = Arrays.stream(customIPAddress.split(",")).map(String::trim).collect(Collectors.toList());
+        } else if (configuration.isMatchAllFromXForwardedFor()) {
+            //use X-Forwarded-For header value directly (for compatibility)
             ips = Arrays.stream(request.headers().get(HttpHeaderNames.X_FORWARDED_FOR).split(",")).map(String::trim).collect(toList());
         } else {
+            //default way to get IP Address
             ips = singletonList(request.remoteAddress());
         }
         return ips;
