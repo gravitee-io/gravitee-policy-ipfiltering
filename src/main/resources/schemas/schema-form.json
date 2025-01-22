@@ -5,7 +5,49 @@
   "properties" : {
     "matchAllFromXForwardedFor" : {
       "title" : "Use X-Forwarded-For header",
-      "type" : "boolean"
+      "type" : "boolean",
+      "x-schema-form": {
+        "hidden": [
+          {
+          "$eq": {
+            "useCustomIPAddress": true
+          }
+          }
+        ]
+      },
+      "gioConfig": {
+        "displayIf": {
+          "$eq": {
+            "value.useCustomIPAddress": false
+          }
+        }
+      }
+    },
+    "useCustomIPAddress": {
+      "title":"Use custom IP address (support EL)",
+      "type": "boolean"
+    },
+    "customIPAddress": {
+      "title": "Custom IP Address (support comma separated list)",
+      "description": "Support EL (ex: {#request.headers['X-Forwarded-For']})",
+      "type": "string",
+      "x-schema-form": {
+        "expression-language": true,
+        "hidden": [
+          {
+            "$eq": {
+              "useCustomIPAddress": false
+            }
+          }
+        ]
+      },
+      "gioConfig": {
+        "displayIf": {
+          "$eq": {
+            "value.useCustomIPAddress": true
+          }
+        }
+      }
     },
     "whitelistIps" : {
       "title" : "IPs Whitelist (CIDR and hosts allowed)",

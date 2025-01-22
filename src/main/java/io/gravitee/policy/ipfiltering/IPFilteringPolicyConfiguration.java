@@ -44,6 +44,10 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
 
     private boolean isInclusiveHostCount = false;
 
+    private boolean useCustomIPAddress;
+
+    private String customIPAddress;
+
     public boolean isMatchAllFromXForwardedFor() {
         return matchAllFromXForwardedFor;
     }
@@ -82,5 +86,21 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
 
     public boolean isInclusiveHostCount() {
         return isInclusiveHostCount;
+    }
+
+    public String getCustomIPAddress() {
+        return customIPAddress;
+    }
+
+    public void setCustomIPAddress(String customIPAddress) {
+        this.customIPAddress = customIPAddress;
+    }
+
+    public boolean isUseCustomIPAddress() {
+        return useCustomIPAddress;
+    }
+
+    public void setUseCustomIPAddress(boolean useCustomIPAddress) {
+        this.useCustomIPAddress = useCustomIPAddress;
     }
 }

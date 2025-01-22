@@ -121,7 +121,7 @@ public class IPFilteringPolicyTest {
     @Test
     public void shouldTestXFF() throws Exception {
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
-        when(mockRequest.headers()).thenReturn(HttpHeaders.create());
+        when(mockRequest.headers()).thenReturn(HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost"));
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
         policy.onRequest(executionContext, mockPolicychain);
