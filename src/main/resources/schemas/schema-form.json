@@ -51,6 +51,7 @@
     },
     "whitelistIps" : {
       "title" : "IPs Whitelist (CIDR and hosts allowed)",
+      "description": "List of IPs to allow in the request. Each entry may be a comma-separated list.",
       "type" : "array",
       "items" : {
         "title" : "IP / CIDR / Host",
@@ -60,6 +61,7 @@
     },
     "blacklistIps" : {
       "title" : "IPs Blacklist (CIDR and hosts allowed)",
+      "description": "List of IPs to disallow in the request. Each entry may be a comma-separated list.",
       "type" : "array",
       "items" : {
         "title" : "IP / CIDR / Host",
