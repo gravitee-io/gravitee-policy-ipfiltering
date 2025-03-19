@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.17.0...1.18.0) (2025-03-19)
+
+
+### Features
+
+* support comma-separated IPs in wl/bl ([7594f39](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/7594f39a54f98fec7d782a8b542cf7f6d82d747e))
+
 # [1.17.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.16.1...1.17.0) (2025-01-22)
 
 
