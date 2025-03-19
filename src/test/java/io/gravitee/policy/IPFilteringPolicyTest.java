@@ -71,6 +71,12 @@ public class IPFilteringPolicyTest {
             if ("{#api.properties['forbidden_ip']}".equals(expression)) {
                 return (T) "192.168.0.2";
             }
+            if ("{#api.properties['list_of_allowed_ips']}".equals(expression)) {
+                return (T) "192.168.0.1,192.168.0.2";
+            }
+            if ("{#api.properties['list_of_forbidden_ips']}".equals(expression)) {
+                return (T) "192.168.0.3,192.168.0.4";
+            }
             return (T) expression;
         }
 
@@ -145,6 +151,30 @@ public class IPFilteringPolicyTest {
     @Test
     public void shouldFailCausedIpNotInWhitelist() {
         when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void shouldFailCausedIpNotInWhitelistPropertyList() {
+        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("{api.properties['list_of_allowed_ips']", "192.168.0.5"));
+        when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void shouldFailCausedIpInBlacklistPropertyList() {
+        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.3,192.168.0.4", "192.168.0.5"));
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 

@@ -218,6 +218,11 @@ public class IPFilteringPolicy {
         if (givenList == null) {
             return Set.of();
         }
-        return givenList.stream().map(given -> ctx.getTemplateEngine().getValue(given, String.class)).collect(Collectors.toSet());
+        return givenList
+            .stream()
+            .map(given -> ctx.getTemplateEngine().getValue(given, String.class))
+            .map(k -> k != null && !k.isEmpty() ? k.split(",") : new String[] {})
+            .flatMap(Arrays::stream)
+            .collect(Collectors.toSet());
     }
 }
