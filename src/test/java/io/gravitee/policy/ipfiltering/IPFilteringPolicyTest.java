@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.policy;
+package io.gravitee.policy.ipfiltering;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.TemplateContext;
@@ -29,8 +28,6 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
-import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
-import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
 import io.reactivex.Maybe;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,7 +90,6 @@ public class IPFilteringPolicyTest {
 
     @Before
     public void init() {
-        initMocks(this);
         when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
         when(executionContext.request()).thenReturn(mockRequest);
         when(executionContext.response()).thenReturn(mockResponse);
@@ -114,7 +110,7 @@ public class IPFilteringPolicyTest {
     }
 
     @Test
-    public void shouldNotTestXFF() throws Exception {
+    public void shouldNotTestXFF() {
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(false);
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
@@ -125,7 +121,7 @@ public class IPFilteringPolicyTest {
     }
 
     @Test
-    public void shouldTestXFF() throws Exception {
+    public void shouldTestXFF() {
         when(mockConfiguration.isMatchAllFromXForwardedFor()).thenReturn(true);
         when(mockRequest.headers()).thenReturn(HttpHeaders.create().set(HttpHeaderNames.X_FORWARDED_FOR, "localhost"));
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);

@@ -36,7 +36,8 @@ public class DnsConfiguration {
 
     public DnsConfiguration(Configuration globalConfiguration) {
         this.dnsServerHost = globalConfiguration.getProperty(DNS_HOST, String.class);
-        this.dnsServerPort = globalConfiguration.getProperty(DNS_PORT, Integer.class, -1);
+        Integer port = globalConfiguration.getProperty(DNS_PORT, Integer.class);
+        this.dnsServerPort = (port != null) ? port : -1;
         hasGlobalConfiguration = dnsServerHost != null && dnsServerPort != -1;
     }
 

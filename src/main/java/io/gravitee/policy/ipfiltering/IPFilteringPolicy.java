@@ -83,7 +83,7 @@ public class IPFilteringPolicy {
                         host,
                         event -> {
                             if (event.succeeded()) {
-                                if (executionContext.request().remoteAddress().equals(event.result())) {
+                                if (event.result().contains(executionContext.request().remoteAddress())) {
                                     promise.fail("");
                                 } else {
                                     promise.complete();
@@ -119,7 +119,7 @@ public class IPFilteringPolicy {
                         host,
                         event -> {
                             if (event.succeeded()) {
-                                if (!executionContext.request().remoteAddress().equals(event.result())) {
+                                if (!event.result().contains(executionContext.request().remoteAddress())) {
                                     promise.fail("");
                                 } else {
                                     promise.complete();
