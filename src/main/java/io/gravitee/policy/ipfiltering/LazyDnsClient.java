@@ -17,11 +17,14 @@ package io.gravitee.policy.ipfiltering;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
-import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.dns.DnsClient;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * LazyDnsClient is an abstract class that provides a lazy initialization of a DNS client. The DNS client is only created when required.
@@ -51,19 +54,34 @@ public class LazyDnsClient {
         ExecutionContext executionContext,
         LookupIpVersion lookupIpVersion,
         String host,
-        Handler<AsyncResult<@Nullable String>> handler
+        Handler<AsyncResult<List<String>>> handler
     ) {
         DnsClient client = get(executionContext);
+
         switch (lookupIpVersion) {
             case IPV6:
-                client.lookup6(host, handler);
+                client.resolveAAAA(host).onComplete(handler);
                 break;
             case IPV4:
-                client.lookup4(host, handler);
+                client.resolveA(host).onComplete(handler);
                 break;
             case ALL:
             default:
-                client.lookup(host, handler);
+                client
+                    .resolveA(host)
+                    .recover(err -> Future.succeededFuture(Collections.emptyList()))
+                    .compose(ipv4List -> {
+                        if (!ipv4List.isEmpty()) {
+                            // Return IPv4 only
+                            return Future.succeededFuture(ipv4List);
+                        } else {
+                            // Try IPv6 instead
+                            return client.resolveAAAA(host).recover(err -> Future.succeededFuture(Collections.emptyList()));
+                        }
+                    })
+                    .onSuccess(ipList -> handler.handle(Future.succeededFuture(ipList)))
+                    .onFailure(err -> handler.handle(Future.failedFuture(err)));
+
                 break;
         }
     }

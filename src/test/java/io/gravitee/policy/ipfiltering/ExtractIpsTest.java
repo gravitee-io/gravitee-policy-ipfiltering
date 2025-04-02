@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.policy;
+package io.gravitee.policy.ipfiltering;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -24,9 +24,6 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
-import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;

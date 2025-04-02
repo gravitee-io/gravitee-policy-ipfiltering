@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.policy;
+package io.gravitee.policy.ipfiltering;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.policy.ipfiltering.IPFilteringPolicy;
-import io.gravitee.policy.ipfiltering.IPFilteringPolicyConfiguration;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
