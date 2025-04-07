@@ -103,7 +103,7 @@ public class IsFilteredTest {
     @Test
     public void shouldFilteredCIDR_With_isInclusiveHostCount() {
         IPFilteringPolicyConfiguration configuration = new IPFilteringPolicyConfiguration();
-        configuration.setInclusiveHostCount(true);
+        configuration.setIsInclusiveHostCount(true);
         IPFilteringPolicy policy = new IPFilteringPolicy(configuration);
 
         boolean filtered = policy.isFiltered("192.168.1.0", Collections.singletonList("192.168.1.0/31"));

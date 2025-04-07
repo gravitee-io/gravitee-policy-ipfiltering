@@ -80,11 +80,11 @@ public class IPFilteringPolicyConfiguration implements PolicyConfiguration {
         this.lookupIpVersion = lookupIpVersion;
     }
 
-    public void setInclusiveHostCount(boolean inclusiveHostCount) {
+    public void setIsInclusiveHostCount(boolean inclusiveHostCount) {
         isInclusiveHostCount = inclusiveHostCount;
     }
 
-    public boolean isInclusiveHostCount() {
+    public boolean getIsInclusiveHostCount() {
         return isInclusiveHostCount;
     }
 

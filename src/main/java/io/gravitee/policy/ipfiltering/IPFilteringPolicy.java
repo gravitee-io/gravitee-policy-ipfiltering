@@ -202,7 +202,7 @@ public class IPFilteringPolicy {
                     }
                     try {
                         SubnetUtils utils = new SubnetUtils(filterIp);
-                        if (configuration.isInclusiveHostCount()) {
+                        if (configuration.getIsInclusiveHostCount()) {
                             utils.setInclusiveHostCount(true);
                         }
                         return utils.getInfo().isInRange(ip);
