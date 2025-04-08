@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.18.0...1.18.1) (2025-04-08)
+
+
+### Bug Fixes
+
+* isInclusiveHostCount boolean getter method ([59e7130](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/59e7130c739a8a2a06667bf7ccac77b262ea4a24))
+
 # [1.18.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.17.0...1.18.0) (2025-03-19)
 
 
