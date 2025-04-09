@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.18.1...1.19.0) (2025-04-09)
+
+
+### Features
+
+* resolve all host ips ([97d4c95](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/97d4c95c48622b26f620c3d33c195a08aea7c09b))
+
 ## [1.18.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.18.0...1.18.1) (2025-04-08)
 
 
