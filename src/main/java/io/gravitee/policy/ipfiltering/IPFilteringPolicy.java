@@ -83,7 +83,9 @@ public class IPFilteringPolicy {
                         host,
                         event -> {
                             if (event.succeeded()) {
-                                if (event.result().contains(executionContext.request().remoteAddress())) {
+                                List<String> resolvedIps = event.result();
+                                boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
+                                if (matchFound) {
                                     promise.fail("");
                                 } else {
                                     promise.complete();
@@ -119,7 +121,9 @@ public class IPFilteringPolicy {
                         host,
                         event -> {
                             if (event.succeeded()) {
-                                if (!event.result().contains(executionContext.request().remoteAddress())) {
+                                List<String> resolvedIps = event.result();
+                                boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
+                                if (!matchFound) {
                                     promise.fail("");
                                 } else {
                                     promise.complete();
