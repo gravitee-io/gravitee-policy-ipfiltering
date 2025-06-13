@@ -1,3 +1,10 @@
+## [1.19.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.0...1.19.1) (2025-06-13)
+
+
+### Bug Fixes
+
+* resolve 403 error for custom IP ([f77ce51](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/f77ce51a36bed03edd9fe40f0c5bcec85ba14a7a))
+
 # [1.19.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.18.1...1.19.0) (2025-04-09)
 
 
