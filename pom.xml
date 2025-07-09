@@ -49,7 +49,7 @@
 
         <maven-assembly-plugin.version>2.5.5</maven-assembly-plugin.version>
         <commons-net.version>3.6</commons-net.version>
-        <commons-validator.version>1.7</commons-validator.version>
+        <commons-validator.version>1.10.0</commons-validator.version>
         <publish-folder-path>graviteeio-apim/plugins/policies</publish-folder-path>
     </properties>
 
