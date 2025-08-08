@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.1...2.0.0) (2025-08-08)
+
+
+### Bug Fixes
+
+* **deps:** bump commons-net to 3.12.0 ([3106434](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/31064349e674a5cef75c4d6e95e119ea83a8f727))
+* **deps:** bump commons-validation to 1.10.0 ([4bea059](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/4bea059d36ca61b9e1c222e804e7680a66df5570))
+
+
+### chore
+
+* **deps:** update gravitee-parent ([d59af60](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/d59af602346d2915d7c2851dba98c724a1e32313))
+
+
+### BREAKING CHANGES
+
+* **deps:** require Java17
+
 ## [1.19.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.0...1.19.1) (2025-06-13)
 
 
