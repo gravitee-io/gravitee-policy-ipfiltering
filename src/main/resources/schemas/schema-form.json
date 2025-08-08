@@ -1,89 +1,85 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "additionalProperties": false,
-  "properties" : {
-    "matchAllFromXForwardedFor" : {
-      "title" : "Use X-Forwarded-For header",
-      "type" : "boolean",
-      "x-schema-form": {
-        "hidden": [
-          {
-          "$eq": {
-            "useCustomIPAddress": true
-          }
-          }
-        ]
-      },
-      "gioConfig": {
-        "displayIf": {
-          "$eq": {
-            "value.useCustomIPAddress": false
-          }
-        }
-      }
-    },
-    "useCustomIPAddress": {
-      "title":"Use custom IP address (support EL)",
-      "type": "boolean"
-    },
-    "customIPAddress": {
-      "title": "Custom IP Address (support comma separated list)",
-      "description": "Support EL (ex: {#request.headers['X-Forwarded-For']})",
-      "type": "string",
-      "x-schema-form": {
-        "expression-language": true,
-        "hidden": [
-          {
-            "$eq": {
-              "useCustomIPAddress": false
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "matchAllFromXForwardedFor": {
+            "title": "Use X-Forwarded-For header",
+            "type": "boolean",
+            "x-schema-form": {
+                "hidden": [
+                    {
+                        "$eq": {
+                            "useCustomIPAddress": true
+                        }
+                    }
+                ]
+            },
+            "gioConfig": {
+                "displayIf": {
+                    "$eq": {
+                        "value.useCustomIPAddress": false
+                    }
+                }
             }
-          }
-        ]
-      },
-      "gioConfig": {
-        "displayIf": {
-          "$eq": {
-            "value.useCustomIPAddress": true
-          }
+        },
+        "useCustomIPAddress": {
+            "title": "Use custom IP address (support EL)",
+            "type": "boolean"
+        },
+        "customIPAddress": {
+            "title": "Custom IP Address (support comma separated list)",
+            "description": "Support EL (ex: {#request.headers['X-Forwarded-For']})",
+            "type": "string",
+            "x-schema-form": {
+                "expression-language": true,
+                "hidden": [
+                    {
+                        "$eq": {
+                            "useCustomIPAddress": false
+                        }
+                    }
+                ]
+            },
+            "gioConfig": {
+                "displayIf": {
+                    "$eq": {
+                        "value.useCustomIPAddress": true
+                    }
+                }
+            }
+        },
+        "whitelistIps": {
+            "title": "IPs Whitelist (CIDR and hosts allowed)",
+            "description": "List of IPs to allow in the request. Each entry may be a comma-separated list.",
+            "type": "array",
+            "items": {
+                "title": "IP / CIDR / Host",
+                "type": "string",
+                "minLength": 1
+            }
+        },
+        "blacklistIps": {
+            "title": "IPs Blacklist (CIDR and hosts allowed)",
+            "description": "List of IPs to disallow in the request. Each entry may be a comma-separated list.",
+            "type": "array",
+            "items": {
+                "title": "IP / CIDR / Host",
+                "type": "string",
+                "minLength": 1
+            }
+        },
+        "lookupIpVersion": {
+            "title": "Lookup IP version to use (default is ALL)",
+            "description": "If you're not sure your DNS server can handle multi-question requests (both V4 and V6) specify a version",
+            "type": "string",
+            "enum": ["IPV4", "IPV6", "ALL"],
+            "default": "ALL"
+        },
+        "isInclusiveHostCount": {
+            "title": "Inclusive Host Count",
+            "description": "If true, include the network and broadcast addresses (useful for CIDR/31 and CIDR/32).",
+            "type": "boolean"
         }
-      }
-    },
-    "whitelistIps" : {
-      "title" : "IPs Whitelist (CIDR and hosts allowed)",
-      "description": "List of IPs to allow in the request. Each entry may be a comma-separated list.",
-      "type" : "array",
-      "items" : {
-        "title" : "IP / CIDR / Host",
-        "type" : "string",
-        "minLength": 1
-      }
-    },
-    "blacklistIps" : {
-      "title" : "IPs Blacklist (CIDR and hosts allowed)",
-      "description": "List of IPs to disallow in the request. Each entry may be a comma-separated list.",
-      "type" : "array",
-      "items" : {
-        "title" : "IP / CIDR / Host",
-        "type" : "string",
-        "minLength": 1
-      }
-    },
-    "lookupIpVersion" : {
-      "title" : "Lookup IP version to use (default is ALL)",
-      "description": "If you're not sure your DNS server can handle multi-question requests (both V4 and V6) specify a version",
-      "type" : "string",
-      "enum": [
-        "IPV4",
-        "IPV6",
-        "ALL"
-      ],
-      "default": "ALL"
-    },
-    "isInclusiveHostCount": {
-        "title": "Inclusive Host Count",
-        "description": "If true, include the network and broadcast addresses (useful for CIDR/31 and CIDR/32).",
-        "type": "boolean"
     }
-  }
 }
