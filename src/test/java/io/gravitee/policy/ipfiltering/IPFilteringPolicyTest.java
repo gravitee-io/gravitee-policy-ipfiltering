@@ -324,7 +324,7 @@ public class IPFilteringPolicyTest {
             "Your IP (192.168.0.2) or some proxies whereby your request pass through are not allowed to reach this resource.",
             policyResult.message()
         );
-        assertEquals(HttpStatusCode.FORBIDDEN_403, policyResult.httpStatusCode());
+        assertEquals(HttpStatusCode.FORBIDDEN_403, policyResult.statusCode());
         verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
     }
 
@@ -345,7 +345,7 @@ public class IPFilteringPolicyTest {
             "Your IP (localhost, 10.0.0.1, unknown) or some proxies whereby your request pass through are not allowed to reach this resource.",
             policyResult.message()
         );
-        assertEquals(HttpStatusCode.FORBIDDEN_403, policyResult.httpStatusCode());
+        assertEquals(HttpStatusCode.FORBIDDEN_403, policyResult.statusCode());
     }
 
     @Test
