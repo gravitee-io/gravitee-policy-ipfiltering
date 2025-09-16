@@ -25,9 +25,14 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.netty.handler.ipfilter.IpFilterRuleType;
+import io.netty.handler.ipfilter.IpSubnetFilterRule;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.net.util.SubnetUtils;
@@ -204,17 +209,28 @@ public class IPFilteringPolicy {
                     if (filterIp.equals(ip)) {
                         return true;
                     }
-                    try {
-                        SubnetUtils utils = new SubnetUtils(filterIp);
-                        if (configuration.getIsInclusiveHostCount()) {
-                            utils.setInclusiveHostCount(true);
-                        }
-                        return utils.getInfo().isInRange(ip);
-                    } catch (IllegalArgumentException iae) {
-                        return false;
-                    }
+                    return isIpInFilterIpRange(ip, filterIp);
                 })
         );
+    }
+
+    boolean isIpInFilterIpRange(String ip, String filterIp) {
+        try {
+            if (isIPv4(ip)) {
+                SubnetUtils utils = new SubnetUtils(filterIp);
+                utils.setInclusiveHostCount(configuration.getIsInclusiveHostCount());
+                return utils.getInfo().isInRange(ip);
+            } else {
+                IpSubnetFilterRule rule = new IpSubnetFilterRule(filterIp, IpFilterRuleType.ACCEPT);
+                return rule.matches(new InetSocketAddress(ip, 0));
+            }
+        } catch (IllegalArgumentException | UnknownHostException iae) {
+            return false;
+        }
+    }
+
+    private static boolean isIPv4(String ip) throws UnknownHostException {
+        return InetAddress.getByName(ip) instanceof java.net.Inet4Address;
     }
 
     @SuppressWarnings({ "removal" })
