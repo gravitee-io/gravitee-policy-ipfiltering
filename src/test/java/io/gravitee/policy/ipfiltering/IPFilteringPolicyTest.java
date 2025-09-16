@@ -16,6 +16,8 @@
 package io.gravitee.policy.ipfiltering;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -437,5 +439,81 @@ public class IPFilteringPolicyTest {
         policy.onRequest(executionContext, mockPolicychain);
         verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
         verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void isIpInFilterIpRange_ipV4_in_filterIpRange() {
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+        String ip = "192.168.0.1";
+        String filterIp = "192.168.0.0/24";
+        boolean res = policy.isIpInFilterIpRange(ip, filterIp);
+        assertTrue(res);
+    }
+
+    @Test
+    public void isIpInFilterIpRange_networkIpV4_in_filterIpRange_isNotInclusiveHostCount() {
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+        String ip = "192.168.0.0";
+        String filterIp = "192.168.0.0/24";
+        boolean res = policy.isIpInFilterIpRange(ip, filterIp);
+        assertFalse(res);
+    }
+
+    @Test
+    public void isIpInFilterIpRange_networkIpV4_in_filterIpRange_isInclusiveHostCount() {
+        IPFilteringPolicyConfiguration configuration = new IPFilteringPolicyConfiguration();
+        configuration.setIsInclusiveHostCount(true);
+        IPFilteringPolicy policy = new IPFilteringPolicy(configuration);
+        String ip = "192.168.0.0";
+        String filterIp = "192.168.0.0/24";
+        boolean res = policy.isIpInFilterIpRange(ip, filterIp);
+        assertTrue(res);
+    }
+
+    @Test
+    public void isIpInFilterIpRange_broadcastIpV4_in_filterIpRange_isNotInclusiveHostCount() {
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+        String ip = "192.168.0.255";
+        String filterIp = "192.168.0.0/24";
+        boolean res = policy.isIpInFilterIpRange(ip, filterIp);
+        assertFalse(res);
+    }
+
+    @Test
+    public void isIpInFilterIpRange_broadcastIpV4_in_filterIpRange_isInclusiveHostCount() {
+        IPFilteringPolicyConfiguration configuration = new IPFilteringPolicyConfiguration();
+        configuration.setIsInclusiveHostCount(true);
+        IPFilteringPolicy policy = new IPFilteringPolicy(configuration);
+        String ip = "192.168.0.255";
+        String filterIp = "192.168.0.0/24";
+        boolean res = policy.isIpInFilterIpRange(ip, filterIp);
+        assertTrue(res);
+    }
+
+    @Test
+    public void isIpInFilterIpRange_ipV4_not_in_filterIpRange() {
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+        String ip = "192.168.0.1";
+        String filterIp = "192.169.0.0/24";
+        boolean res = policy.isIpInFilterIpRange(ip, filterIp);
+        assertFalse(res);
+    }
+
+    @Test
+    public void isIpInFilterIpRange_ipV6_in_filterIpRange() {
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+        String ip = "2001:db8::1";
+        String filterIp = "2001:db8::/64";
+        boolean res = policy.isIpInFilterIpRange(ip, filterIp);
+        assertTrue(res);
+    }
+
+    @Test
+    public void isIpInFilterIpRange_ipV6_not_in_filterIpRange() {
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+        String ip = "2001:db8::1";
+        String filterIp = "2001:db9::/64";
+        boolean res = policy.isIpInFilterIpRange(ip, filterIp);
+        assertFalse(res);
     }
 }
