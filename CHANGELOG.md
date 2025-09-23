@@ -1,62 +1,9 @@
-# [2.2.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.1.0...2.2.0) (2026-02-23)
-
-
-### Features
-
-* enable for A2A proxy ([ff02b4e](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/ff02b4e895cb71d83684c03cf6481172c9ac60bd))
-
-# [2.1.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.3...2.1.0) (2025-12-11)
-
-
-### Features
-
-* enable for LLM & MCP Proxy API ([af70001](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/af700012681942017a0d135cf788be23f02984ab))
-
-# [2.1.0-alpha.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.3...2.1.0-alpha.1) (2025-11-07)
-
-
-### Features
-
-* enable for LLM & MCP Proxy API ([7b228a1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/7b228a110da95073eb9ce733faf37c4871e6a05f))
-
-## [2.0.3](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.2...2.0.3) (2025-10-20)
+## [1.19.2](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.1...1.19.2) (2025-09-23)
 
 
 ### Bug Fixes
 
-* correct IP filtering logic for combined IP/hostname whitelists/blacklists ([cf09afc](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/cf09afc34c417a04a1d0b4376eb61d60bd2eb4fa))
-
-## [2.0.2](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.1...2.0.2) (2025-09-26)
-
-
-### Bug Fixes
-
-* Multipe bypass in IP Filtering policy with hostname specified - APIM ([7908d63](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/7908d6331d53077b53d05c6447e5221dbc34dec2))
-
-## [2.0.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.0...2.0.1) (2025-09-16)
-
-
-### Bug Fixes
-
-* IPV6 CIDR ranges do not work in the IP filtering policy ([91fa727](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/91fa72708b9459b985b0e92a14364735cd174867))
-
-# [2.0.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.1...2.0.0) (2025-08-08)
-
-
-### Bug Fixes
-
-* **deps:** bump commons-net to 3.12.0 ([3106434](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/31064349e674a5cef75c4d6e95e119ea83a8f727))
-* **deps:** bump commons-validation to 1.10.0 ([4bea059](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/4bea059d36ca61b9e1c222e804e7680a66df5570))
-
-
-### chore
-
-* **deps:** update gravitee-parent ([d59af60](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/d59af602346d2915d7c2851dba98c724a1e32313))
-
-
-### BREAKING CHANGES
-
-* **deps:** require Java17
+* IPV6 CIDR ranges do not work in the IP filtering policy ([1e6d7b9](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/1e6d7b9fe7669bf5756878fca12f87f91599434c))
 
 ## [1.19.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.0...1.19.1) (2025-06-13)
 
