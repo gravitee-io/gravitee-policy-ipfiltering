@@ -1,3 +1,10 @@
+## [1.19.2](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.1...1.19.2) (2025-09-23)
+
+
+### Bug Fixes
+
+* IPV6 CIDR ranges do not work in the IP filtering policy ([1e6d7b9](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/1e6d7b9fe7669bf5756878fca12f87f91599434c))
+
 ## [1.19.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.0...1.19.1) (2025-06-13)
 
 
