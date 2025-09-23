@@ -23,7 +23,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.dns.DnsClient;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -58,31 +57,23 @@ public class LazyDnsClient {
     ) {
         DnsClient client = get(executionContext);
 
-        switch (lookupIpVersion) {
-            case IPV6:
-                client.resolveAAAA(host).onComplete(handler);
-                break;
-            case IPV4:
-                client.resolveA(host).onComplete(handler);
-                break;
-            case ALL:
-            default:
-                client
-                    .resolveA(host)
-                    .recover(err -> Future.succeededFuture(Collections.emptyList()))
-                    .compose(ipv4List -> {
-                        if (!ipv4List.isEmpty()) {
-                            // Return IPv4 only
-                            return Future.succeededFuture(ipv4List);
-                        } else {
-                            // Try IPv6 instead
-                            return client.resolveAAAA(host).recover(err -> Future.succeededFuture(Collections.emptyList()));
-                        }
-                    })
-                    .onSuccess(ipList -> handler.handle(Future.succeededFuture(ipList)))
-                    .onFailure(err -> handler.handle(Future.failedFuture(err)));
+        if (lookupIpVersion == LookupIpVersion.IPV6) {
+            client.resolveAAAA(host).onComplete(handler);
+        } else if (lookupIpVersion == LookupIpVersion.IPV4) {
+            client.resolveA(host).onComplete(handler);
+        } else {
+            Future<List<String>> ipv4Future = client.resolveA(host);
+            Future<List<String>> ipv6Future = client.resolveAAAA(host);
 
-                break;
+            Future
+                .all(ipv4Future, ipv6Future)
+                .map(cf -> {
+                    List<String> all = new ArrayList<>();
+                    all.addAll(cf.resultAt(0)); // ipv4Future result
+                    all.addAll(cf.resultAt(1)); // ipv6Future result
+                    return all;
+                })
+                .onComplete(handler);
         }
     }
 }

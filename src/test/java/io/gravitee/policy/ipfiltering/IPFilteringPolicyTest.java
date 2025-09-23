@@ -165,6 +165,70 @@ public class IPFilteringPolicyTest {
     }
 
     @Test
+    public void blacklist_filtered_hosts_process_should_fail_because_dns_client_lookup_failed()
+        throws NoSuchFieldException, IllegalAccessException {
+        Field dnsClientField = LazyDnsClient.class.getDeclaredField("dnsClient");
+        dnsClientField.setAccessible(true);
+        dnsClientField.set(null, null);
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(false);
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of("example.com"));
+        when(mockConfiguration.getBlacklistIps()).thenReturn(List.of());
+        when(mockRequest.remoteAddress()).thenReturn("93.184.216.34");
+        when(mockConfiguration.getLookupIpVersion()).thenReturn(LookupIpVersion.ALL);
+
+        Configuration mockGlobalConfig = mock(Configuration.class);
+        when(mockGlobalConfig.getProperty("policy.ip-filtering.dns.host", String.class)).thenReturn("127.0.0.1");
+        when(mockGlobalConfig.getProperty("policy.ip-filtering.dns.port", Integer.class)).thenReturn(53);
+        when(executionContext.getComponent(Configuration.class)).thenReturn(mockGlobalConfig);
+        Vertx mockVertx = mock(Vertx.class);
+        DnsClient mockDnsClient = mock(DnsClient.class);
+        when(executionContext.getComponent(Vertx.class)).thenReturn(mockVertx);
+        when(mockVertx.createDnsClient(any())).thenReturn(mockDnsClient);
+
+        when(mockConfiguration.getBlacklistIps()).thenReturn(List.of("example.com"));
+        when(mockDnsClient.resolveA("example.com")).thenReturn(Future.failedFuture(""));
+        when(mockDnsClient.resolveAAAA("example.com")).thenReturn(Future.failedFuture(""));
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
+    public void whitelist_filtered_hosts_process_should_fail_because_dns_client_lookup_failed()
+        throws NoSuchFieldException, IllegalAccessException {
+        Field dnsClientField = LazyDnsClient.class.getDeclaredField("dnsClient");
+        dnsClientField.setAccessible(true);
+        dnsClientField.set(null, null);
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(false);
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of("example.com"));
+        when(mockConfiguration.getBlacklistIps()).thenReturn(List.of());
+        when(mockRequest.remoteAddress()).thenReturn("93.184.216.34");
+        when(mockConfiguration.getLookupIpVersion()).thenReturn(LookupIpVersion.ALL);
+
+        Configuration mockGlobalConfig = mock(Configuration.class);
+        when(mockGlobalConfig.getProperty("policy.ip-filtering.dns.host", String.class)).thenReturn("127.0.0.1");
+        when(mockGlobalConfig.getProperty("policy.ip-filtering.dns.port", Integer.class)).thenReturn(53);
+        when(executionContext.getComponent(Configuration.class)).thenReturn(mockGlobalConfig);
+        Vertx mockVertx = mock(Vertx.class);
+        DnsClient mockDnsClient = mock(DnsClient.class);
+        when(executionContext.getComponent(Vertx.class)).thenReturn(mockVertx);
+        when(mockVertx.createDnsClient(any())).thenReturn(mockDnsClient);
+
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of("example.com"));
+        when(mockDnsClient.resolveA("example.com")).thenReturn(Future.failedFuture(""));
+        when(mockDnsClient.resolveAAAA("example.com")).thenReturn(Future.failedFuture(""));
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        policy.onRequest(executionContext, mockPolicychain);
+
+        verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
+        verify(mockPolicychain, never()).doNext(any(Request.class), any(Response.class));
+    }
+
+    @Test
     public void shouldFailCausedIpNotInWhitelist() {
         when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
         when(mockRequest.remoteAddress()).thenReturn("192.168.0.4");
@@ -371,6 +435,7 @@ public class IPFilteringPolicyTest {
         when(executionContext.getComponent(Vertx.class)).thenReturn(mockVertx);
         when(mockVertx.createDnsClient(any())).thenReturn(mockDnsClient);
         when(mockDnsClient.resolveA("example.com")).thenReturn(Future.succeededFuture(List.of("93.184.216.34")));
+        when(mockDnsClient.resolveAAAA("example.com")).thenReturn(Future.succeededFuture(List.of()));
 
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
         policy.onRequest(executionContext, mockPolicychain);
@@ -435,6 +500,7 @@ public class IPFilteringPolicyTest {
         when(executionContext.getComponent(Vertx.class)).thenReturn(mockVertx);
         when(mockVertx.createDnsClient(any())).thenReturn(mockDnsClient);
         when(mockDnsClient.resolveA("example.com")).thenReturn(Future.succeededFuture(List.of("203.0.113.10")));
+        when(mockDnsClient.resolveAAAA("example.com")).thenReturn(Future.succeededFuture(List.of()));
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
         policy.onRequest(executionContext, mockPolicychain);
         verify(mockPolicychain, times(1)).failWith(any(PolicyResult.class));
