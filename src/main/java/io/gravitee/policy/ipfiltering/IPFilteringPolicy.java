@@ -79,29 +79,7 @@ public class IPFilteringPolicy {
             }
 
             if (!filteredHosts.isEmpty()) {
-                filteredHosts.forEach(host -> {
-                    final Promise<Void> promise = Promise.promise();
-                    futures.add(promise.future());
-                    LazyDnsClient.lookup(
-                        executionContext,
-                        configuration.getLookupIpVersion(),
-                        host,
-                        event -> {
-                            if (event.succeeded()) {
-                                List<String> resolvedIps = event.result();
-                                boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
-                                if (matchFound) {
-                                    promise.fail("");
-                                } else {
-                                    promise.complete();
-                                }
-                            } else {
-                                LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
-                                promise.complete();
-                            }
-                        }
-                    );
-                });
+                blacklistFilteredHostsProcess(filteredHosts, futures, executionContext, ips);
             }
         }
 
@@ -117,29 +95,7 @@ public class IPFilteringPolicy {
             }
 
             if (!filteredHosts.isEmpty()) {
-                filteredHosts.forEach(host -> {
-                    final Promise<Void> promise = Promise.promise();
-                    futures.add(promise.future());
-                    LazyDnsClient.lookup(
-                        executionContext,
-                        configuration.getLookupIpVersion(),
-                        host,
-                        event -> {
-                            if (event.succeeded()) {
-                                List<String> resolvedIps = event.result();
-                                boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
-                                if (!matchFound) {
-                                    promise.fail("");
-                                } else {
-                                    promise.complete();
-                                }
-                            } else {
-                                LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
-                                promise.complete();
-                            }
-                        }
-                    );
-                });
+                whitelistFilteredHostsProcess(filteredHosts, futures, executionContext, ips);
             }
         }
 
@@ -151,6 +107,80 @@ public class IPFilteringPolicy {
                 .onSuccess(__ -> policyChain.doNext(executionContext.request(), executionContext.response()))
                 .onFailure(__ -> fail(policyChain, executionContext.request().remoteAddress()));
         }
+    }
+
+    /**
+     * @param filteredHosts A list of hosts that should be blocked
+     * @param futures
+     * @param executionContext
+     * @param ips The IP addresses corresponding to the calling device
+     */
+    private void blacklistFilteredHostsProcess(
+        List<String> filteredHosts,
+        List<Future> futures,
+        ExecutionContext executionContext,
+        List<String> ips
+    ) {
+        filteredHosts.forEach(host -> {
+            final Promise<Void> promise = Promise.promise();
+            futures.add(promise.future());
+            LazyDnsClient.lookup(
+                executionContext,
+                configuration.getLookupIpVersion(),
+                host,
+                event -> {
+                    if (event.succeeded()) {
+                        List<String> resolvedIps = event.result();
+                        boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
+                        if (matchFound) {
+                            promise.fail("");
+                        } else {
+                            promise.complete();
+                        }
+                    } else {
+                        LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
+                        promise.fail("Cannot resolve host: '" + host + "'");
+                    }
+                }
+            );
+        });
+    }
+
+    /**
+     * @param filteredHosts A list of hosts that should be allowed
+     * @param futures
+     * @param executionContext
+     * @param ips The IP addresses corresponding to the calling device
+     */
+    private void whitelistFilteredHostsProcess(
+        List<String> filteredHosts,
+        List<Future> futures,
+        ExecutionContext executionContext,
+        List<String> ips
+    ) {
+        filteredHosts.forEach(host -> {
+            final Promise<Void> promise = Promise.promise();
+            futures.add(promise.future());
+            LazyDnsClient.lookup(
+                executionContext,
+                configuration.getLookupIpVersion(),
+                host,
+                event -> {
+                    if (event.succeeded()) {
+                        List<String> resolvedIps = event.result();
+                        boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
+                        if (!matchFound) {
+                            promise.fail("");
+                        } else {
+                            promise.complete();
+                        }
+                    } else {
+                        LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
+                        promise.fail("Cannot resolve host: '" + host + "'");
+                    }
+                }
+            );
+        });
     }
 
     private void processFilteredLists(final Set<String> filteredList, final List<String> filteredIps, final List<String> filteredHosts) {

@@ -15,17 +15,22 @@
  */
 package io.gravitee.policy.ipfiltering;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.dns.DnsClient;
 import io.vertx.core.dns.DnsClientOptions;
-import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -101,28 +106,10 @@ public class LazyDnsClientTest {
     }
 
     @Test
-    public void shouldResolveALL_withIPv4Only() {
+    public void shouldResolveALL() {
         List<String> ipv4 = List.of("192.168.0.1");
+        List<String> ipv6 = List.of("3a2f:8c10:9b77:4d2a:11ff:fe45:67c8:ab12");
         when(dnsClient.resolveA(eq("example.com"))).thenReturn(Future.succeededFuture(ipv4));
-
-        LazyDnsClient.lookup(
-            executionContext,
-            LookupIpVersion.ALL,
-            "example.com",
-            result -> {
-                assertTrue(result.succeeded());
-                assertEquals(ipv4, result.result());
-            }
-        );
-
-        verify(dnsClient).resolveA("example.com");
-        verify(dnsClient, never()).resolveAAAA("example.com");
-    }
-
-    @Test
-    public void shouldResolveALL_withEmptyIPv4_andUseIPv6() {
-        List<String> ipv6 = List.of("2001:abcd::1");
-        when(dnsClient.resolveA(eq("example.com"))).thenReturn(Future.succeededFuture(Collections.emptyList()));
         when(dnsClient.resolveAAAA(eq("example.com"))).thenReturn(Future.succeededFuture(ipv6));
 
         LazyDnsClient.lookup(
@@ -131,7 +118,7 @@ public class LazyDnsClientTest {
             "example.com",
             result -> {
                 assertTrue(result.succeeded());
-                assertEquals(ipv6, result.result());
+                assertThat(result.result()).containsExactlyInAnyOrder(ipv4.get(0), ipv6.get(0));
             }
         );
 
@@ -149,8 +136,7 @@ public class LazyDnsClientTest {
             LookupIpVersion.ALL,
             "example.com",
             result -> {
-                assertTrue(result.succeeded());
-                assertEquals(Collections.emptyList(), result.result());
+                assertFalse(result.succeeded());
             }
         );
     }
