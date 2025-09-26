@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.1...2.0.2) (2025-09-26)
+
+
+### Bug Fixes
+
+* Multipe bypass in IP Filtering policy with hostname specified - APIM ([7908d63](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/7908d6331d53077b53d05c6447e5221dbc34dec2))
+
 ## [2.0.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.0...2.0.1) (2025-09-16)
 
 
