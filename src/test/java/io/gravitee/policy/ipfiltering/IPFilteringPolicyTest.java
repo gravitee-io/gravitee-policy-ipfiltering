@@ -18,13 +18,7 @@ package io.gravitee.policy.ipfiltering;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.TemplateContext;
@@ -47,11 +41,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -325,7 +322,7 @@ public class IPFilteringPolicyTest {
         verify(mockPolicychain, times(1)).failWith(policyResultCaptor.capture());
         PolicyResult policyResult = policyResultCaptor.getValue();
         assertEquals(
-            "Your IP (192.168.0.2) or some proxies whereby your request pass through are not allowed to reach this resource.",
+            "Your IP (localhost, 10.0.0.1, 192.168.0.2, unknown) or some proxies whereby your request pass through are not allowed to reach this resource.",
             policyResult.message()
         );
         assertEquals(HttpStatusCode.FORBIDDEN_403, policyResult.httpStatusCode());
@@ -517,5 +514,65 @@ public class IPFilteringPolicyTest {
         String filterIp = "2001:db9::/64";
         boolean res = policy.isIpInFilterIpRange(ip, filterIp);
         assertFalse(res);
+    }
+
+    @Test
+    public void shouldAllowRequestWhenIpInWhitelistOrHostnameResolvesToWhitelist() throws InterruptedException {
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(false);
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of("93.184.216.34", "example.com"));
+        when(mockConfiguration.getBlacklistIps()).thenReturn(List.of());
+        when(mockRequest.remoteAddress()).thenReturn("93.184.216.34");
+        when(mockConfiguration.getLookupIpVersion()).thenReturn(LookupIpVersion.ALL);
+
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+                latch.countDown();
+                return null;
+            })
+            .when(mockPolicychain)
+            .doNext(any(), any());
+
+        try (MockedStatic<LazyDnsClient> lazyDnsMock = mockStatic(LazyDnsClient.class)) {
+            lazyDnsMock
+                .when(() -> LazyDnsClient.lookup(any(), any(), eq("example.com"), any()))
+                .thenAnswer(invocation -> {
+                    var handler = invocation.getArgument(3, io.vertx.core.Handler.class);
+                    handler.handle(Future.succeededFuture(List.of("93.184.216.34")));
+                    return null;
+                });
+            policy.onRequest(executionContext, mockPolicychain);
+        }
+        assertTrue("PolicyChain did not complete in time", latch.await(1, TimeUnit.SECONDS));
+
+        verify(mockPolicychain, never()).failWith(any());
+        verify(mockPolicychain, times(1)).doNext(any(), any());
+    }
+
+    @Test
+    public void shouldFailRequestWhenIpOrHostnameMatchesBlacklist() {
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(false);
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of());
+        when(mockConfiguration.getBlacklistIps()).thenReturn(List.of("192.168.0.5", "badhost.com"));
+        when(mockRequest.remoteAddress()).thenReturn("93.184.216.34"); // IP that will match the hostname
+        when(mockConfiguration.getLookupIpVersion()).thenReturn(LookupIpVersion.ALL);
+
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        try (MockedStatic<LazyDnsClient> lazyDnsMock = mockStatic(LazyDnsClient.class)) {
+            lazyDnsMock
+                .when(() -> LazyDnsClient.lookup(any(), any(), eq("badhost.com"), any()))
+                .thenAnswer(invocation -> {
+                    var handler = invocation.getArgument(3, io.vertx.core.Handler.class);
+                    // Simulate resolved IP matches the request IP → block
+                    handler.handle(Future.succeededFuture(List.of("93.184.216.34")));
+                    return null;
+                });
+
+            policy.onRequest(executionContext, mockPolicychain);
+        }
+
+        verify(mockPolicychain, times(1)).failWith(any());
+        verify(mockPolicychain, never()).doNext(any(), any());
     }
 }

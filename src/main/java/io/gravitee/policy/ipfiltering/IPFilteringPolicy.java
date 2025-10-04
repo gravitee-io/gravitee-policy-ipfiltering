@@ -72,11 +72,7 @@ public class IPFilteringPolicy {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(blackList, filteredIps, filteredHosts);
-            Optional<String> matchingIp = ips.stream().filter(ip -> isFiltered(ip, filteredIps)).findFirst();
-            if (!filteredIps.isEmpty() && matchingIp.isPresent()) {
-                fail(policyChain, matchingIp.get());
-                return;
-            }
+            boolean ipMatched = !filteredIps.isEmpty() && ips.stream().anyMatch(ip -> isFiltered(ip, filteredIps));
 
             if (!filteredHosts.isEmpty()) {
                 filteredHosts.forEach(host -> {
@@ -89,19 +85,34 @@ public class IPFilteringPolicy {
                         event -> {
                             if (event.succeeded()) {
                                 List<String> resolvedIps = event.result();
-                                boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
-                                if (matchFound) {
+                                if (ips.stream().anyMatch(resolvedIps::contains)) {
                                     promise.fail("");
                                 } else {
                                     promise.complete();
                                 }
                             } else {
                                 LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
-                                promise.complete();
+                                promise.fail("Cannot resolve host");
                             }
                         }
                     );
                 });
+            }
+
+            if (!futures.isEmpty()) {
+                CompositeFuture
+                    .all(futures)
+                    .onComplete(ar -> {
+                        if (ipMatched || ar.failed()) {
+                            fail(policyChain, String.join(", ", ips));
+                        } else {
+                            policyChain.doNext(executionContext.request(), executionContext.response());
+                        }
+                    });
+                return;
+            } else if (ipMatched) {
+                fail(policyChain, String.join(", ", ips));
+                return;
             }
         }
 
@@ -109,6 +120,7 @@ public class IPFilteringPolicy {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(whiteList, filteredIps, filteredHosts);
+            boolean ipMatched = !filteredIps.isEmpty() && ips.stream().anyMatch(ip -> isFiltered(ip, filteredIps));
             List<String> nonWhitelistedIps = ips.stream().filter(ip -> !isFiltered(ip, filteredIps)).collect(Collectors.toList());
 
             if (!filteredIps.isEmpty() && nonWhitelistedIps.size() == ips.size()) {
@@ -127,19 +139,37 @@ public class IPFilteringPolicy {
                         event -> {
                             if (event.succeeded()) {
                                 List<String> resolvedIps = event.result();
-                                boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
-                                if (!matchFound) {
-                                    promise.fail("");
+                                if (ips.stream().noneMatch(resolvedIps::contains)) {
+                                    promise.fail(""); // block if no match
                                 } else {
-                                    promise.complete();
+                                    promise.complete(); // allow if match
                                 }
                             } else {
                                 LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
-                                promise.complete();
+                                promise.fail("Cannot resolve host"); // treat failure as block
                             }
                         }
                     );
                 });
+            }
+
+            if (!futures.isEmpty()) {
+                CompositeFuture
+                    .all(futures)
+                    .onComplete(ar -> {
+                        if (ar.failed() || (!filteredIps.isEmpty() && nonWhitelistedIps.size() == ips.size())) {
+                            fail(policyChain, String.join(", ", ips));
+                        } else {
+                            policyChain.doNext(executionContext.request(), executionContext.response());
+                        }
+                    });
+                return;
+            } else if (ipMatched) {
+                policyChain.doNext(executionContext.request(), executionContext.response());
+                return;
+            } else if (!filteredIps.isEmpty()) {
+                fail(policyChain, String.join(", ", ips));
+                return;
             }
         }
 
