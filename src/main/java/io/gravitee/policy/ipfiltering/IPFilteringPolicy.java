@@ -73,7 +73,7 @@ public class IPFilteringPolicy {
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(blackList, filteredIps, filteredHosts);
             Optional<String> matchingIp = ips.stream().filter(ip -> isFiltered(ip, filteredIps)).findFirst();
-            if (!filteredIps.isEmpty() && matchingIp.isPresent()) {
+            if (matchingIp.isPresent()) {
                 fail(policyChain, matchingIp.get());
                 return;
             }
@@ -89,15 +89,14 @@ public class IPFilteringPolicy {
                         event -> {
                             if (event.succeeded()) {
                                 List<String> resolvedIps = event.result();
-                                boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
-                                if (matchFound) {
+                                if (ips.stream().anyMatch(resolvedIps::contains)) {
                                     promise.fail("");
                                 } else {
                                     promise.complete();
                                 }
                             } else {
                                 LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
-                                promise.complete();
+                                promise.fail("Cannot resolve host");
                             }
                         }
                     );
@@ -109,17 +108,23 @@ public class IPFilteringPolicy {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(whiteList, filteredIps, filteredHosts);
-            List<String> nonWhitelistedIps = ips.stream().filter(ip -> !isFiltered(ip, filteredIps)).collect(Collectors.toList());
-
-            if (!filteredIps.isEmpty() && nonWhitelistedIps.size() == ips.size()) {
-                fail(policyChain, String.join(", ", nonWhitelistedIps));
-                return;
+            boolean ipMatched = !filteredIps.isEmpty() && ips.stream().anyMatch(ip -> isFiltered(ip, filteredIps));
+            if (ipMatched) {
+                final Promise<Void> promise = Promise.promise();
+                futures.add(promise.future());
+                promise.complete();
             }
 
-            if (!filteredHosts.isEmpty()) {
+            if (!ipMatched) {
+                if (filteredHosts.isEmpty()) {
+                    fail(policyChain, String.join(", ", ips));
+                    return;
+                }
+
                 filteredHosts.forEach(host -> {
                     final Promise<Void> promise = Promise.promise();
                     futures.add(promise.future());
+
                     LazyDnsClient.lookup(
                         executionContext,
                         configuration.getLookupIpVersion(),
@@ -127,15 +132,14 @@ public class IPFilteringPolicy {
                         event -> {
                             if (event.succeeded()) {
                                 List<String> resolvedIps = event.result();
-                                boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
-                                if (!matchFound) {
-                                    promise.fail("");
-                                } else {
+                                if (ips.stream().anyMatch(resolvedIps::contains)) {
                                     promise.complete();
+                                } else {
+                                    promise.fail("Not in whitelist host: " + host);
                                 }
                             } else {
                                 LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
-                                promise.complete();
+                                promise.fail("Cannot resolve host");
                             }
                         }
                     );
