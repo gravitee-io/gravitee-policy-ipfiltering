@@ -78,8 +78,25 @@ public class IPFilteringPolicy {
                 return;
             }
 
+            boolean ipMatched = !filteredIps.isEmpty() && ips.stream().anyMatch(ip -> isFiltered(ip, filteredIps));
             if (!filteredHosts.isEmpty()) {
                 blacklistFilteredHostsProcess(filteredHosts, futures, executionContext, ips);
+            }
+            if (!futures.isEmpty()) {
+                CompositeFuture
+                    .all(futures)
+                    .onComplete(ar -> {
+                        if (ipMatched || ar.failed()) {
+                            LOGGER.warn("Request blocked: IP {} matched blacklist hosts {}", ips, filteredHosts);
+                            fail(policyChain, String.join(", ", ips));
+                        } else {
+                            policyChain.doNext(executionContext.request(), executionContext.response());
+                        }
+                    });
+                return;
+            } else if (ipMatched) {
+                fail(policyChain, String.join(", ", ips));
+                return;
             }
         }
 
@@ -87,15 +104,30 @@ public class IPFilteringPolicy {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(whiteList, filteredIps, filteredHosts);
-            List<String> nonWhitelistedIps = ips.stream().filter(ip -> !isFiltered(ip, filteredIps)).collect(Collectors.toList());
 
-            if (!filteredIps.isEmpty() && nonWhitelistedIps.size() == ips.size()) {
-                fail(policyChain, String.join(", ", nonWhitelistedIps));
-                return;
-            }
-
+            boolean ipMatched = !filteredIps.isEmpty() && ips.stream().anyMatch(ip -> isFiltered(ip, filteredIps));
             if (!filteredHosts.isEmpty()) {
                 whitelistFilteredHostsProcess(filteredHosts, futures, executionContext, ips);
+            }
+
+            if (!futures.isEmpty()) {
+                CompositeFuture
+                    .all(futures)
+                    .onComplete(ar -> {
+                        if (ipMatched || ar.succeeded()) {
+                            policyChain.doNext(executionContext.request(), executionContext.response());
+                        } else {
+                            LOGGER.warn("Request blocked: IPs {} did not match whitelist IPs or hosts {}", ips, filteredHosts);
+                            fail(policyChain, String.join(", ", ips));
+                        }
+                    });
+                return;
+            } else if (ipMatched) {
+                policyChain.doNext(executionContext.request(), executionContext.response());
+                return;
+            } else {
+                fail(policyChain, String.join(", ", ips));
+                return;
             }
         }
 
@@ -231,6 +263,7 @@ public class IPFilteringPolicy {
     }
 
     public boolean isFiltered(String ip, List<String> filteredList) {
+        LOGGER.info("Filtering IP: {} against filter list: {}", ip, filteredList);
         return (
             !(null == ip || ip.isEmpty()) &&
             filteredList
