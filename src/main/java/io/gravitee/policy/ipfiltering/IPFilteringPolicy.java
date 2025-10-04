@@ -39,6 +39,8 @@ import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -73,11 +75,10 @@ public class IPFilteringPolicy {
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(blackList, filteredIps, filteredHosts);
             Optional<String> matchingIp = ips.stream().filter(ip -> isFiltered(ip, filteredIps)).findFirst();
-            if (!filteredIps.isEmpty() && matchingIp.isPresent()) {
+            if (matchingIp.isPresent()) {
                 fail(policyChain, matchingIp.get());
                 return;
             }
-
             if (!filteredHosts.isEmpty()) {
                 blacklistFilteredHostsProcess(filteredHosts, futures, executionContext, ips);
             }
@@ -87,14 +88,17 @@ public class IPFilteringPolicy {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(whiteList, filteredIps, filteredHosts);
-            List<String> nonWhitelistedIps = ips.stream().filter(ip -> !isFiltered(ip, filteredIps)).collect(Collectors.toList());
 
-            if (!filteredIps.isEmpty() && nonWhitelistedIps.size() == ips.size()) {
-                fail(policyChain, String.join(", ", nonWhitelistedIps));
-                return;
-            }
-
-            if (!filteredHosts.isEmpty()) {
+            boolean ipMatched = ips.stream().anyMatch(ip -> isFiltered(ip, filteredIps));
+            if (ipMatched) {
+                final Promise<Void> promise = Promise.promise();
+                futures.add(promise.future());
+                promise.complete();
+            } else {
+                if (filteredHosts.isEmpty()) {
+                    fail(policyChain, String.join(", ", ips));
+                    return;
+                }
                 whitelistFilteredHostsProcess(filteredHosts, futures, executionContext, ips);
             }
         }
@@ -231,17 +235,25 @@ public class IPFilteringPolicy {
     }
 
     public boolean isFiltered(String ip, List<String> filteredList) {
-        return (
-            !(null == ip || ip.isEmpty()) &&
-            filteredList
-                .stream()
-                .anyMatch(filterIp -> {
-                    if (filterIp.equals(ip)) {
-                        return true;
-                    }
-                    return isIpInFilterIpRange(ip, filterIp);
-                })
-        );
+        LOGGER.debug("Filtering IP {} against filter list {}", ip, filteredList);
+
+        if (CollectionUtils.isEmpty(filteredList)) {
+            return false;
+        }
+
+        if (!StringUtils.hasText(ip)) {
+            return false;
+        }
+
+        return filteredList
+            .stream()
+            .filter(Objects::nonNull)
+            .anyMatch(filterIp -> {
+                if (filterIp.equals(ip)) {
+                    return true;
+                }
+                return isIpInFilterIpRange(ip, filterIp);
+            });
     }
 
     boolean isIpInFilterIpRange(String ip, String filterIp) {
