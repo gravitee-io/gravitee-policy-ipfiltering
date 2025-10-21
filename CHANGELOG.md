@@ -1,3 +1,10 @@
+## [1.19.3](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.2...1.19.3) (2025-10-21)
+
+
+### Bug Fixes
+
+* correct IP filtering logic for combined IP/hostname whitelists/blacklists ([2530dcf](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/2530dcf91f3ede6fc79f5a505870c3e311a5e4b0))
+
 ## [1.19.2](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/1.19.1...1.19.2) (2025-09-23)
 
 
