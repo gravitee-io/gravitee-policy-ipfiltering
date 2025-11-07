@@ -1,3 +1,10 @@
+# [2.1.0-alpha.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.3...2.1.0-alpha.1) (2025-11-07)
+
+
+### Features
+
+* enable for LLM & MCP Proxy API ([7b228a1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/7b228a110da95073eb9ce733faf37c4871e6a05f))
+
 ## [2.0.3](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.2...2.0.3) (2025-10-20)
 
 
