@@ -28,10 +28,13 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.api.context.EntrypointConnectContext;
+import io.gravitee.gateway.reactive.api.exception.InterruptConnectionException;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.*;
 import io.vertx.core.dns.DnsClient;
 import java.lang.reflect.Field;
@@ -622,5 +625,176 @@ public class IPFilteringPolicyTest {
         }
         verify(mockPolicychain, times(1)).failWith(any());
         verify(mockPolicychain, never()).doNext(any(), any());
+    }
+
+    @Test
+    public void should_block_connection_when_ip_in_blacklist_during_entrypoint_connect() {
+        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("127.0.0.1", "192.168.0.1"));
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of());
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(false);
+
+        EntrypointConnectContext connectContext = mock(EntrypointConnectContext.class);
+        TemplateEngine templateEngine = mock(TemplateEngine.class);
+
+        when(connectContext.remoteAddress()).thenReturn("127.0.0.1");
+        when(connectContext.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        TestObserver<Void> testObserver = policy.onEntrypointConnect(connectContext).test();
+
+        testObserver.assertError(InterruptConnectionException.class);
+        testObserver.assertError(throwable -> throwable.getMessage().contains("127.0.0.1") && throwable.getMessage().contains("blacklisted")
+        );
+    }
+
+    @Test
+    public void should_allow_connection_when_ip_in_whitelist_during_entrypoint_connect() {
+        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockConfiguration.getBlacklistIps()).thenReturn(List.of());
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(false);
+
+        EntrypointConnectContext connectContext = mock(EntrypointConnectContext.class);
+        TemplateEngine templateEngine = mock(TemplateEngine.class);
+
+        when(connectContext.remoteAddress()).thenReturn("192.168.0.2");
+        when(connectContext.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        TestObserver<Void> testObserver = policy.onEntrypointConnect(connectContext).test();
+
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
+    }
+
+    @Test
+    public void should_block_connection_when_ip_not_in_whitelist_during_entrypoint_connect() {
+        when(mockConfiguration.getWhitelistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2", "192.168.0.3"));
+        when(mockConfiguration.getBlacklistIps()).thenReturn(List.of());
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(false);
+
+        EntrypointConnectContext connectContext = mock(EntrypointConnectContext.class);
+        TemplateEngine templateEngine = mock(TemplateEngine.class);
+
+        when(connectContext.remoteAddress()).thenReturn("192.168.0.4");
+        when(connectContext.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        TestObserver<Void> testObserver = policy.onEntrypointConnect(connectContext).test();
+
+        testObserver.assertError(InterruptConnectionException.class);
+        testObserver.assertError(throwable ->
+            throwable.getMessage().contains("192.168.0.4") && throwable.getMessage().contains("not whitelisted")
+        );
+    }
+
+    @Test
+    public void should_allow_connection_when_ip_not_in_blacklist_during_entrypoint_connect() {
+        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1", "192.168.0.2"));
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of());
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(false);
+
+        EntrypointConnectContext connectContext = mock(EntrypointConnectContext.class);
+        TemplateEngine templateEngine = mock(TemplateEngine.class);
+
+        when(connectContext.remoteAddress()).thenReturn("192.168.0.5");
+        when(connectContext.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        TestObserver<Void> testObserver = policy.onEntrypointConnect(connectContext).test();
+
+        testObserver.assertComplete();
+        testObserver.assertNoErrors();
+    }
+
+    @Test
+    public void should_use_custom_ip_address_when_configured_during_entrypoint_connect() {
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(true);
+        when(mockConfiguration.getCustomIPAddress()).thenReturn("10.0.0.1");
+        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("10.0.0.1"));
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of());
+
+        EntrypointConnectContext connectContext = mock(EntrypointConnectContext.class);
+        TemplateEngine templateEngine = mock(TemplateEngine.class);
+
+        when(connectContext.remoteAddress()).thenReturn("192.168.0.1");
+        when(connectContext.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        TestObserver<Void> testObserver = policy.onEntrypointConnect(connectContext).test();
+
+        testObserver.assertError(InterruptConnectionException.class);
+        testObserver.assertError(throwable -> throwable.getMessage().contains("10.0.0.1") && throwable.getMessage().contains("blacklisted")
+        );
+    }
+
+    @Test
+    public void should_use_first_ip_when_custom_ip_has_comma_separated_values_during_entrypoint_connect() {
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(true);
+        when(mockConfiguration.getCustomIPAddress()).thenReturn("{#context.attributes['clientIps']}");
+        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("10.0.0.1"));
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of());
+
+        EntrypointConnectContext connectContext = mock(EntrypointConnectContext.class);
+        TemplateEngine templateEngine = mock(TemplateEngine.class);
+
+        when(connectContext.remoteAddress()).thenReturn("192.168.0.1");
+        when(connectContext.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class)))
+            .thenAnswer(invocation -> {
+                String arg = invocation.getArgument(0);
+                if (arg.equals("{#context.attributes['clientIps']}")) {
+                    return "10.0.0.1, 10.0.0.2, 10.0.0.3";
+                }
+                return arg;
+            });
+
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        TestObserver<Void> testObserver = policy.onEntrypointConnect(connectContext).test();
+
+        testObserver.assertError(InterruptConnectionException.class);
+        testObserver.assertError(throwable -> throwable.getMessage().contains("10.0.0.1") && throwable.getMessage().contains("blacklisted")
+        );
+    }
+
+    @Test
+    public void should_fallback_to_remote_address_when_custom_ip_is_empty_during_entrypoint_connect() {
+        when(mockConfiguration.isUseCustomIPAddress()).thenReturn(true);
+        when(mockConfiguration.getCustomIPAddress()).thenReturn("{#context.attributes['nonExistent']}");
+        when(mockConfiguration.getBlacklistIps()).thenReturn(Arrays.asList("192.168.0.1"));
+        when(mockConfiguration.getWhitelistIps()).thenReturn(List.of());
+
+        EntrypointConnectContext connectContext = mock(EntrypointConnectContext.class);
+        TemplateEngine templateEngine = mock(TemplateEngine.class);
+
+        when(connectContext.remoteAddress()).thenReturn("192.168.0.1"); // Remote address is blacklisted
+        when(connectContext.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class)))
+            .thenAnswer(invocation -> {
+                String arg = invocation.getArgument(0);
+                if (arg.equals("{#context.attributes['nonExistent']}")) {
+                    return "";
+                }
+                return arg;
+            });
+
+        IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
+
+        TestObserver<Void> testObserver = policy.onEntrypointConnect(connectContext).test();
+
+        testObserver.assertError(InterruptConnectionException.class);
+        testObserver.assertError(throwable ->
+            throwable.getMessage().contains("192.168.0.1") && throwable.getMessage().contains("blacklisted")
+        );
     }
 }

@@ -19,14 +19,18 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.api.exception.InterruptConnectionException;
+import io.gravitee.gateway.reactive.api.policy.kafka.KafkaPolicy;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.netty.handler.ipfilter.IpFilterRuleType;
 import io.netty.handler.ipfilter.IpSubnetFilterRule;
+import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -47,7 +51,7 @@ import org.springframework.util.StringUtils;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class IPFilteringPolicy {
+public class IPFilteringPolicy implements KafkaPolicy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IPFilteringPolicy.class);
 
@@ -62,13 +66,18 @@ public class IPFilteringPolicy {
         this.configuration = configuration;
     }
 
+    @Override
+    public String id() {
+        return "ip-filtering";
+    }
+
     @OnRequest
     public void onRequest(ExecutionContext executionContext, PolicyChain policyChain) {
         final List<String> ips = extractIps(executionContext);
         final List<Future> futures = new ArrayList<>();
 
-        var blackList = computeList(executionContext, configuration.getBlacklistIps());
-        var whiteList = computeList(executionContext, configuration.getWhitelistIps());
+        var blackList = computeList(executionContext.getTemplateEngine(), configuration.getBlacklistIps());
+        var whiteList = computeList(executionContext.getTemplateEngine(), configuration.getWhitelistIps());
 
         if (!blackList.isEmpty()) {
             final List<String> filteredIps = new ArrayList<>();
@@ -111,6 +120,84 @@ public class IPFilteringPolicy {
                 .onSuccess(__ -> policyChain.doNext(executionContext.request(), executionContext.response()))
                 .onFailure(__ -> fail(policyChain, executionContext.request().remoteAddress()));
         }
+    }
+
+    /**
+     * Executes IP filtering during the ENTRYPOINT_CONNECT phase for Native Kafka APIs.
+     * This happens BEFORE authentication, allowing early rejection of unauthorized IPs.
+     *
+     * Note: DNS lookups for hostnames are NOT supported in this phase for performance reasons.
+     * Only static IPs and CIDR ranges are evaluated. Use IPs instead of hostnames for ENTRYPOINT_CONNECT phase.
+     *
+     * @param ctx the entrypoint connect context
+     * @return a Completable that completes successfully if the IP is allowed, or throws InterruptConnectionException if denied
+     */
+    @Override
+    public Completable onEntrypointConnect(io.gravitee.gateway.reactive.api.context.EntrypointConnectContext ctx) {
+        return Completable.defer(() -> {
+            try {
+                final String remoteAddress = extractIpFromNativeContext(ctx);
+
+                final Set<String> blacklistIps = computeList(ctx.getTemplateEngine(), configuration.getBlacklistIps());
+                final Set<String> whitelistIps = computeList(ctx.getTemplateEngine(), configuration.getWhitelistIps());
+
+                final List<String> blacklistFilteredIps = new ArrayList<>();
+                final List<String> blacklistFilteredHosts = new ArrayList<>();
+                processFilteredLists(blacklistIps, blacklistFilteredIps, blacklistFilteredHosts);
+
+                final List<String> whitelistFilteredIps = new ArrayList<>();
+                final List<String> whitelistFilteredHosts = new ArrayList<>();
+                processFilteredLists(whitelistIps, whitelistFilteredIps, whitelistFilteredHosts);
+
+                // Log warning if hostnames are configured (not supported in ENTRYPOINT_CONNECT)
+                if (!blacklistFilteredHosts.isEmpty() || !whitelistFilteredHosts.isEmpty()) {
+                    LOGGER.warn(
+                        "[IP Filtering] Hostnames in whitelist/blacklist are not supported in ENTRYPOINT_CONNECT phase. " +
+                        "Only IP addresses and CIDR ranges will be evaluated. Configured hostnames will be ignored: blacklist={}, whitelist={}",
+                        blacklistFilteredHosts,
+                        whitelistFilteredHosts
+                    );
+                }
+
+                if (isFiltered(remoteAddress, blacklistFilteredIps)) {
+                    String reason = "IP " + remoteAddress + " is blacklisted and not allowed to connect";
+                    ctx.interrupt(reason);
+                    return Completable.error(new InterruptConnectionException(reason));
+                }
+
+                if (!whitelistFilteredIps.isEmpty()) {
+                    boolean matched = isFiltered(remoteAddress, whitelistFilteredIps);
+                    if (!matched) {
+                        String reason = "IP " + remoteAddress + " is not whitelisted";
+                        ctx.interrupt(reason);
+                        return Completable.error(new InterruptConnectionException(reason));
+                    }
+                }
+
+                return Completable.complete();
+            } catch (InterruptConnectionException e) {
+                return Completable.error(e);
+            } catch (Exception e) {
+                LOGGER.error("[IP Filtering] Error during ENTRYPOINT_CONNECT phase", e);
+                return Completable.error(e);
+            }
+        });
+    }
+
+    private String extractIpFromNativeContext(io.gravitee.gateway.reactive.api.context.EntrypointConnectContext ctx) {
+        if (configuration.isUseCustomIPAddress()) {
+            String customIPAddress = ctx.getTemplateEngine().getValue(configuration.getCustomIPAddress(), String.class);
+            if (customIPAddress == null || customIPAddress.trim().isEmpty()) {
+                return ctx.remoteAddress();
+            }
+            return Arrays
+                .stream(customIPAddress.split(","))
+                .map(String::trim)
+                .filter(ip -> !ip.isEmpty())
+                .findFirst() // Take first IP if comma-separated (Native Kafka = 1 connection = 1 source IP)
+                .orElse(ctx.remoteAddress());
+        }
+        return ctx.remoteAddress();
     }
 
     /**
@@ -276,13 +363,13 @@ public class IPFilteringPolicy {
     }
 
     @SuppressWarnings({ "removal" })
-    private static Set<String> computeList(ExecutionContext ctx, List<String> givenList) {
+    private static Set<String> computeList(TemplateEngine templateEngine, List<String> givenList) {
         if (givenList == null) {
             return Set.of();
         }
         return givenList
             .stream()
-            .map(given -> ctx.getTemplateEngine().getValue(given, String.class))
+            .map(given -> templateEngine.getValue(given, String.class))
             .map(k -> k != null && !k.isEmpty() ? k.split(",") : new String[] {})
             .flatMap(Arrays::stream)
             .collect(Collectors.toSet());

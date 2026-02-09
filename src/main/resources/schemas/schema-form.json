@@ -5,7 +5,9 @@
     "properties": {
         "matchAllFromXForwardedFor": {
             "title": "Use X-Forwarded-For header",
+            "description": "Extract and check all IPs from X-Forwarded-For header. Not applicable to Native Kafka APIs (no HTTP headers).",
             "type": "boolean",
+            "default": false,
             "x-schema-form": {
                 "hidden": [
                     {
@@ -25,11 +27,12 @@
         },
         "useCustomIPAddress": {
             "title": "Use custom IP address (support EL)",
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
         },
         "customIPAddress": {
             "title": "Custom IP Address (support comma separated list)",
-            "description": "Support EL (ex: {#request.headers['X-Forwarded-For']})",
+            "description": "Support EL (ex: {#request.headers['X-Forwarded-For']}). For Native Kafka, only the first IP from comma-separated values is used.",
             "type": "string",
             "x-schema-form": {
                 "expression-language": true,
@@ -51,7 +54,7 @@
         },
         "whitelistIps": {
             "title": "IPs Whitelist (CIDR and hosts allowed)",
-            "description": "List of IPs to allow in the request. Each entry may be a comma-separated list.",
+            "description": "List of IPs to allow in the request. Each entry may be a comma-separated list. Hostnames are for HTTP/MESSAGE only, and not Native Kafka.",
             "type": "array",
             "items": {
                 "title": "IP / CIDR / Host",
@@ -61,7 +64,7 @@
         },
         "blacklistIps": {
             "title": "IPs Blacklist (CIDR and hosts allowed)",
-            "description": "List of IPs to disallow in the request. Each entry may be a comma-separated list.",
+            "description": "List of IPs to disallow in the request. Each entry may be a comma-separated list. Hostnames are for HTTP/MESSAGE only, and not Native Kafka.",
             "type": "array",
             "items": {
                 "title": "IP / CIDR / Host",
@@ -71,7 +74,7 @@
         },
         "lookupIpVersion": {
             "title": "Lookup IP version to use (default is ALL)",
-            "description": "If you're not sure your DNS server can handle multi-question requests (both V4 and V6) specify a version",
+            "description": "If you're not sure your DNS server can handle multi-question requests (both V4 and V6) specify a version. Only applicable to HTTP/MESSAGE APIs (not Native Kafka).",
             "type": "string",
             "enum": ["IPV4", "IPV6", "ALL"],
             "default": "ALL"
