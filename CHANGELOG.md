@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.1.0...2.2.0) (2026-02-18)
+
+
+### Features
+
+* enable for A2A proxy ([ff02b4e](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/ff02b4e895cb71d83684c03cf6481172c9ac60bd))
+
 # [2.1.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.3...2.1.0) (2025-12-11)
 
 
