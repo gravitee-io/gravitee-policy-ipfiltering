@@ -48,7 +48,7 @@
         <json-schema-generator-maven-plugin.outputDirectory>${project.build.directory}/schemas</json-schema-generator-maven-plugin.outputDirectory>
 
         <commons-net.version>3.12.0</commons-net.version>
-        <commons-validator.version>1.10.0</commons-validator.version>
+        <commons-validator.version>1.10.1</commons-validator.version>
 
         <publish-folder-path>graviteeio-apim/plugins/policies</publish-folder-path>
     </properties>
