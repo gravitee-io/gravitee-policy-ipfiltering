@@ -587,13 +587,8 @@ public class IPFilteringPolicyTest {
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
         try (MockedStatic<LazyDnsClient> lazyDnsMock = mockStatic(LazyDnsClient.class)) {
             lazyDnsMock
-                .when(() -> LazyDnsClient.lookup(any(), any(), eq("example.com"), any()))
-                .thenAnswer(invocation -> {
-                    var handler = invocation.getArgument(3, io.vertx.core.Handler.class);
-                    // Simulate successful DNS lookup
-                    handler.handle(Future.succeededFuture(List.of("93.184.216.34")));
-                    return null;
-                });
+                .when(() -> LazyDnsClient.lookup(any(), any(), eq("example.com")))
+                .thenReturn(Future.succeededFuture(List.of("93.184.216.34")));
             policy.onRequest(executionContext, mockPolicychain);
         }
         verify(mockPolicychain, never()).failWith(any());
@@ -612,12 +607,8 @@ public class IPFilteringPolicyTest {
 
         try (MockedStatic<LazyDnsClient> lazyDnsMock = mockStatic(LazyDnsClient.class)) {
             lazyDnsMock
-                .when(() -> LazyDnsClient.lookup(any(), any(), eq("badhost.com"), any()))
-                .thenAnswer(invocation -> {
-                    var handler = invocation.getArgument(3, io.vertx.core.Handler.class);
-                    handler.handle(Future.succeededFuture(List.of("93.184.216.34")));
-                    return null;
-                });
+                .when(() -> LazyDnsClient.lookup(any(), any(), eq("badhost.com")))
+                .thenReturn(Future.succeededFuture(List.of("93.184.216.34")));
             policy.onRequest(executionContext, mockPolicychain);
         }
         verify(mockPolicychain, times(1)).failWith(any());

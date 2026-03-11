@@ -27,7 +27,7 @@ import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.netty.handler.ipfilter.IpFilterRuleType;
 import io.netty.handler.ipfilter.IpSubnetFilterRule;
-import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import java.net.InetAddress;
@@ -65,7 +65,7 @@ public class IPFilteringPolicy {
     @OnRequest
     public void onRequest(ExecutionContext executionContext, PolicyChain policyChain) {
         final List<String> ips = extractIps(executionContext);
-        final List<Future> futures = new ArrayList<>();
+        final List<Future<?>> futures = new ArrayList<>();
 
         var blackList = computeList(executionContext, configuration.getBlacklistIps());
         var whiteList = computeList(executionContext, configuration.getWhitelistIps());
@@ -106,7 +106,7 @@ public class IPFilteringPolicy {
         if (futures.isEmpty()) {
             policyChain.doNext(executionContext.request(), executionContext.response());
         } else {
-            CompositeFuture
+            Future
                 .all(futures)
                 .onSuccess(__ -> policyChain.doNext(executionContext.request(), executionContext.response()))
                 .onFailure(__ -> fail(policyChain, executionContext.request().remoteAddress()));
@@ -121,18 +121,16 @@ public class IPFilteringPolicy {
      */
     private void blacklistFilteredHostsProcess(
         List<String> filteredHosts,
-        List<Future> futures,
+        List<Future<?>> futures,
         ExecutionContext executionContext,
         List<String> ips
     ) {
         filteredHosts.forEach(host -> {
             final Promise<Void> promise = Promise.promise();
             futures.add(promise.future());
-            LazyDnsClient.lookup(
-                executionContext,
-                configuration.getLookupIpVersion(),
-                host,
-                event -> {
+            LazyDnsClient
+                .lookup(executionContext, configuration.getLookupIpVersion(), host)
+                .onComplete(event -> {
                     if (event.succeeded()) {
                         List<String> resolvedIps = event.result();
                         boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
@@ -145,8 +143,7 @@ public class IPFilteringPolicy {
                         LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
                         promise.fail("Cannot resolve host: '" + host + "'");
                     }
-                }
-            );
+                });
         });
     }
 
@@ -158,18 +155,16 @@ public class IPFilteringPolicy {
      */
     private void whitelistFilteredHostsProcess(
         List<String> filteredHosts,
-        List<Future> futures,
+        List<Future<?>> futures,
         ExecutionContext executionContext,
         List<String> ips
     ) {
         filteredHosts.forEach(host -> {
             final Promise<Void> promise = Promise.promise();
             futures.add(promise.future());
-            LazyDnsClient.lookup(
-                executionContext,
-                configuration.getLookupIpVersion(),
-                host,
-                event -> {
+            LazyDnsClient
+                .lookup(executionContext, configuration.getLookupIpVersion(), host)
+                .onComplete(event -> {
                     if (event.succeeded()) {
                         List<String> resolvedIps = event.result();
                         boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
@@ -182,8 +177,7 @@ public class IPFilteringPolicy {
                         LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
                         promise.fail("Cannot resolve host: '" + host + "'");
                     }
-                }
-            );
+                });
         });
     }
 

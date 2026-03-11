@@ -17,9 +17,7 @@ package io.gravitee.policy.ipfiltering;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.node.api.configuration.Configuration;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.dns.DnsClient;
 import java.util.ArrayList;
@@ -49,31 +47,25 @@ public class LazyDnsClient {
         return dnsClient;
     }
 
-    public static void lookup(
-        ExecutionContext executionContext,
-        LookupIpVersion lookupIpVersion,
-        String host,
-        Handler<AsyncResult<List<String>>> handler
-    ) {
+    public static Future<List<String>> lookup(ExecutionContext executionContext, LookupIpVersion lookupIpVersion, String host) {
         DnsClient client = get(executionContext);
 
         if (lookupIpVersion == LookupIpVersion.IPV6) {
-            client.resolveAAAA(host).onComplete(handler);
+            return client.resolveAAAA(host);
         } else if (lookupIpVersion == LookupIpVersion.IPV4) {
-            client.resolveA(host).onComplete(handler);
+            return client.resolveA(host);
         } else {
             Future<List<String>> ipv4Future = client.resolveA(host);
             Future<List<String>> ipv6Future = client.resolveAAAA(host);
 
-            Future
+            return Future
                 .all(ipv4Future, ipv6Future)
                 .map(cf -> {
                     List<String> all = new ArrayList<>();
                     all.addAll(cf.resultAt(0)); // ipv4Future result
                     all.addAll(cf.resultAt(1)); // ipv6Future result
                     return all;
-                })
-                .onComplete(handler);
+                });
         }
     }
 }
