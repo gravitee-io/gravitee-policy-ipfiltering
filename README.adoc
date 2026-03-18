@@ -25,6 +25,9 @@ You can allow or deny a specific IP address or range of IP addresses with https:
 Whitelist mode excludes all IP addresses except the addresses included in the whitelist.
 Blacklist mode allows all IP addresses except the addresses included in the blacklist.
 
+NOTE: The `X-Forwarded-For` header verification is only applicable to self-hosted gateways.
+On SaaS-based gateways (Gravitee Cloud), the `X-Forwarded-For` header isn't available for IP filtering because the SaaS infrastructure manages traffic routing differently.
+
 The blacklist takes precedence, so if an IP address is included in both lists, the policy rejects the request.
 
 You can specify a host to be resolved and checked against the remote IP.
