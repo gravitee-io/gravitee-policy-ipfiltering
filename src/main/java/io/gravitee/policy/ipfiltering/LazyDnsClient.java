@@ -58,14 +58,12 @@ public class LazyDnsClient {
             Future<List<String>> ipv4Future = client.resolveA(host);
             Future<List<String>> ipv6Future = client.resolveAAAA(host);
 
-            return Future
-                .all(ipv4Future, ipv6Future)
-                .map(cf -> {
-                    List<String> all = new ArrayList<>();
-                    all.addAll(cf.resultAt(0)); // ipv4Future result
-                    all.addAll(cf.resultAt(1)); // ipv6Future result
-                    return all;
-                });
+            return Future.all(ipv4Future, ipv6Future).map(cf -> {
+                List<String> all = new ArrayList<>();
+                all.addAll(cf.resultAt(0)); // ipv4Future result
+                all.addAll(cf.resultAt(1)); // ipv6Future result
+                return all;
+            });
         }
     }
 }

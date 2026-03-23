@@ -74,7 +74,10 @@ public class IPFilteringPolicy {
             final List<String> filteredIps = new ArrayList<>();
             final List<String> filteredHosts = new ArrayList<>();
             processFilteredLists(blackList, filteredIps, filteredHosts);
-            Optional<String> matchingIp = ips.stream().filter(ip -> isFiltered(ip, filteredIps)).findFirst();
+            Optional<String> matchingIp = ips
+                .stream()
+                .filter(ip -> isFiltered(ip, filteredIps))
+                .findFirst();
             if (matchingIp.isPresent()) {
                 fail(policyChain, matchingIp.get());
                 return;
@@ -106,8 +109,7 @@ public class IPFilteringPolicy {
         if (futures.isEmpty()) {
             policyChain.doNext(executionContext.request(), executionContext.response());
         } else {
-            Future
-                .all(futures)
+            Future.all(futures)
                 .onSuccess(__ -> policyChain.doNext(executionContext.request(), executionContext.response()))
                 .onFailure(__ -> fail(policyChain, executionContext.request().remoteAddress()));
         }
@@ -128,22 +130,20 @@ public class IPFilteringPolicy {
         filteredHosts.forEach(host -> {
             final Promise<Void> promise = Promise.promise();
             futures.add(promise.future());
-            LazyDnsClient
-                .lookup(executionContext, configuration.getLookupIpVersion(), host)
-                .onComplete(event -> {
-                    if (event.succeeded()) {
-                        List<String> resolvedIps = event.result();
-                        boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
-                        if (matchFound) {
-                            promise.fail("");
-                        } else {
-                            promise.complete();
-                        }
+            LazyDnsClient.lookup(executionContext, configuration.getLookupIpVersion(), host).onComplete(event -> {
+                if (event.succeeded()) {
+                    List<String> resolvedIps = event.result();
+                    boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
+                    if (matchFound) {
+                        promise.fail("");
                     } else {
-                        LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
-                        promise.fail("Cannot resolve host: '" + host + "'");
+                        promise.complete();
                     }
-                });
+                } else {
+                    LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
+                    promise.fail("Cannot resolve host: '" + host + "'");
+                }
+            });
         });
     }
 
@@ -162,22 +162,20 @@ public class IPFilteringPolicy {
         filteredHosts.forEach(host -> {
             final Promise<Void> promise = Promise.promise();
             futures.add(promise.future());
-            LazyDnsClient
-                .lookup(executionContext, configuration.getLookupIpVersion(), host)
-                .onComplete(event -> {
-                    if (event.succeeded()) {
-                        List<String> resolvedIps = event.result();
-                        boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
-                        if (!matchFound) {
-                            promise.fail("");
-                        } else {
-                            promise.complete();
-                        }
+            LazyDnsClient.lookup(executionContext, configuration.getLookupIpVersion(), host).onComplete(event -> {
+                if (event.succeeded()) {
+                    List<String> resolvedIps = event.result();
+                    boolean matchFound = ips.stream().anyMatch(resolvedIps::contains);
+                    if (!matchFound) {
+                        promise.fail("");
                     } else {
-                        LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
-                        promise.fail("Cannot resolve host: '" + host + "'");
+                        promise.complete();
                     }
-                });
+                } else {
+                    LOGGER.error("Cannot resolve host: '{}'", host, event.cause());
+                    promise.fail("Cannot resolve host: '" + host + "'");
+                }
+            });
         });
     }
 
