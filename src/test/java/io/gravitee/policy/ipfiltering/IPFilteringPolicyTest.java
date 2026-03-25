@@ -456,18 +456,16 @@ public class IPFilteringPolicyTest {
         DnsClient mockDnsClient = mock(DnsClient.class);
         when(executionContext.getComponent(Vertx.class)).thenReturn(mockVertx);
         when(mockVertx.createDnsClient(any())).thenReturn(mockDnsClient);
-        when(mockDnsClient.resolveA("example.com"))
-            .thenAnswer(invocation -> {
-                Promise<Void> promise = Promise.promise();
-                promise.fail(new Throwable("DNS resolution failed"));
-                return promise.future();
-            });
-        when(mockDnsClient.resolveAAAA("example.com"))
-            .thenAnswer(invocation -> {
-                Promise<Void> promise = Promise.promise();
-                promise.fail(new Throwable("DNS resolution failed"));
-                return promise.future();
-            });
+        when(mockDnsClient.resolveA("example.com")).thenAnswer(invocation -> {
+            Promise<Void> promise = Promise.promise();
+            promise.fail(new Throwable("DNS resolution failed"));
+            return promise.future();
+        });
+        when(mockDnsClient.resolveAAAA("example.com")).thenAnswer(invocation -> {
+            Promise<Void> promise = Promise.promise();
+            promise.fail(new Throwable("DNS resolution failed"));
+            return promise.future();
+        });
         IPFilteringPolicy policy = new IPFilteringPolicy(mockConfiguration);
 
         policy.onRequest(executionContext, mockPolicychain);
