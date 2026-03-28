@@ -1,3 +1,10 @@
+## [2.0.4](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.3...2.0.4) (2026-03-28)
+
+
+### Bug Fixes
+
+* **doc:** add note for X-Forwarded-For in readme.adoc ([ed52667](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/ed52667b450e654c0e9664f0a7cc6a6b56e8f28c))
+
 ## [2.0.3](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.2...2.0.3) (2025-10-20)
 
 
