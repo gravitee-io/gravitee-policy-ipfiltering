@@ -1,3 +1,16 @@
+# [3.0.0-alpha.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.1.0-alpha.1...3.0.0-alpha.1) (2026-04-01)
+
+
+### Features
+
+* bumped AM version to 4.12.0-alpha.1 ([7e3aece](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/7e3aece43685f77ecf02cb88c73b1afc1deaf204))
+* vertx5 upgrade ([eff0368](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/eff0368e349ac58976b9e4256d82247862d2d849))
+
+
+### BREAKING CHANGES
+
+* Vertx5, JDK 25
+
 # [2.1.0-alpha.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.0.3...2.1.0-alpha.1) (2025-11-07)
 
 
