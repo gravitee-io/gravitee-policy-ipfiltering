@@ -34,11 +34,15 @@ You can specify a host to be resolved and checked against the remote IP.
 
 NOTE: When using domain name, the Gateway is performing DNS Lookup with the DNS server configured on the host by default. If you want to use a specific DNS server, you can configure it at the policy level. See <<_gateway>> for more information.
 
-== Compatibility with APIM
+== Compatibility matrix
+Strikethrough text indicates that a version is deprecated.
 
 |===
-| Plugin version | APIM version
-| 1.x            | All supported versions
+| Plugin version | APIM             | AM
+
+| 3.x            | 4.12.x and above | 4.12.x and above
+| 2.x            | 4.8.x to 4.11.x  | -
+| 1.x            | up to 4.7.x      | up to 4.11.x
 |===
 
 == Configuration
