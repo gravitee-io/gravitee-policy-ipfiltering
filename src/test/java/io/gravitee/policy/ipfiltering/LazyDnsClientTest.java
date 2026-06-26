@@ -74,15 +74,10 @@ public class LazyDnsClientTest {
         List<String> ipv4 = List.of("192.168.0.1");
         when(dnsClient.resolveA(eq("example.com"))).thenReturn(Future.succeededFuture(ipv4));
 
-        LazyDnsClient.lookup(
-            executionContext,
-            LookupIpVersion.IPV4,
-            "example.com",
-            result -> {
-                assertTrue(result.succeeded());
-                assertEquals(ipv4, result.result());
-            }
-        );
+        LazyDnsClient.lookup(executionContext, LookupIpVersion.IPV4, "example.com", result -> {
+            assertTrue(result.succeeded());
+            assertEquals(ipv4, result.result());
+        });
 
         verify(dnsClient).resolveA("example.com");
     }
@@ -92,15 +87,10 @@ public class LazyDnsClientTest {
         List<String> ipv6 = List.of("2001:0db8:85a3:0000:0000:8a2e:0370:7334");
         when(dnsClient.resolveAAAA(eq("example.com"))).thenReturn(Future.succeededFuture(ipv6));
 
-        LazyDnsClient.lookup(
-            executionContext,
-            LookupIpVersion.IPV6,
-            "example.com",
-            result -> {
-                assertTrue(result.succeeded());
-                assertEquals(ipv6, result.result());
-            }
-        );
+        LazyDnsClient.lookup(executionContext, LookupIpVersion.IPV6, "example.com", result -> {
+            assertTrue(result.succeeded());
+            assertEquals(ipv6, result.result());
+        });
 
         verify(dnsClient).resolveAAAA("example.com");
     }
@@ -112,15 +102,10 @@ public class LazyDnsClientTest {
         when(dnsClient.resolveA(eq("example.com"))).thenReturn(Future.succeededFuture(ipv4));
         when(dnsClient.resolveAAAA(eq("example.com"))).thenReturn(Future.succeededFuture(ipv6));
 
-        LazyDnsClient.lookup(
-            executionContext,
-            LookupIpVersion.ALL,
-            "example.com",
-            result -> {
-                assertTrue(result.succeeded());
-                assertThat(result.result()).containsExactlyInAnyOrder(ipv4.get(0), ipv6.get(0));
-            }
-        );
+        LazyDnsClient.lookup(executionContext, LookupIpVersion.ALL, "example.com", result -> {
+            assertTrue(result.succeeded());
+            assertThat(result.result()).containsExactlyInAnyOrder(ipv4.get(0), ipv6.get(0));
+        });
 
         verify(dnsClient).resolveA("example.com");
         verify(dnsClient).resolveAAAA("example.com");
@@ -131,13 +116,8 @@ public class LazyDnsClientTest {
         when(dnsClient.resolveA(eq("example.com"))).thenReturn(Future.failedFuture(new RuntimeException("DNS fail")));
         when(dnsClient.resolveAAAA(eq("example.com"))).thenReturn(Future.failedFuture(new RuntimeException("IPv6 also fail")));
 
-        LazyDnsClient.lookup(
-            executionContext,
-            LookupIpVersion.ALL,
-            "example.com",
-            result -> {
-                assertFalse(result.succeeded());
-            }
-        );
+        LazyDnsClient.lookup(executionContext, LookupIpVersion.ALL, "example.com", result -> {
+            assertFalse(result.succeeded());
+        });
     }
 }
