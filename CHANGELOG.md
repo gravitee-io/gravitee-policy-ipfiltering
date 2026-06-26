@@ -1,3 +1,23 @@
+# [3.0.0](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.2.1...3.0.0) (2026-06-26)
+
+
+* feat!: upgrade to Vert.x 5 ([7c4c82b](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/7c4c82b974b6b0c8d6dea8ab4736b886707ff236))
+
+
+### BREAKING CHANGES
+
+* migrate the IP filtering policy to Vert.x 5.
+
+Align Gravitee dependencies to released versions:
+- gravitee-bom: 9.0.0
+- gravitee-common: 5.0.0
+- gravitee-gateway-api: 6.0.0
+- gravitee-node-api: 9.0.0
+- gravitee-parent: 24.0.2 (keep Java 21 baseline, do not compile in Java 25)
+
+Switch the policy logger to NodeLoggerFactory (gravitee-node-logging) to
+satisfy the global-logging-check arch rule enforced by gravitee-parent 24.
+
 ## [2.2.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.2.0...2.2.1) (2026-03-29)
 
 
