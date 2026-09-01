@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.2.1...2.2.2) (2026-09-01)
+
+
+### Bug Fixes
+
+* display X-Forwarded-For option when custom IP address is unset ([#122](https://github.com/gravitee-io/gravitee-policy-ipfiltering/issues/122)) ([#125](https://github.com/gravitee-io/gravitee-policy-ipfiltering/issues/125)) ([2845e3a](https://github.com/gravitee-io/gravitee-policy-ipfiltering/commit/2845e3abc442266d37fd615b818563e5006fb8ed))
+
 ## [2.2.1](https://github.com/gravitee-io/gravitee-policy-ipfiltering/compare/2.2.0...2.2.1) (2026-03-29)
 
 
