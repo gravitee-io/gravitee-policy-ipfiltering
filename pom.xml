@@ -48,6 +48,7 @@
         <json-schema-generator-maven-plugin.outputDirectory>${project.build.directory}/schemas</json-schema-generator-maven-plugin.outputDirectory>
 
         <commons-net.version>3.12.0</commons-net.version>
+        <gravitee-json-validation.version>2.0.1</gravitee-json-validation.version>
         <commons-validator.version>1.10.0</commons-validator.version>
 
         <publish-folder-path>graviteeio-apim/plugins/policies</publish-folder-path>
@@ -141,6 +142,13 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.json</groupId>
+            <artifactId>gravitee-json-validation</artifactId>
+            <version>${gravitee-json-validation.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
