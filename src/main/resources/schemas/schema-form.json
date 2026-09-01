@@ -25,7 +25,8 @@
         },
         "useCustomIPAddress": {
             "title": "Use custom IP address (support EL)",
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
         },
         "customIPAddress": {
             "title": "Custom IP Address (support comma separated list)",
